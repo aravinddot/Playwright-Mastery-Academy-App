@@ -158,6 +158,7 @@ export default function EnrollPage() {
   const [countdownSeconds, setCountdownSeconds] = useState(initialCountdownSeconds);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -246,28 +247,84 @@ export default function EnrollPage() {
     <div className="min-h-screen bg-[radial-gradient(circle_at_12%_9%,rgba(37,99,235,0.08),transparent_36%),radial-gradient(circle_at_88%_26%,rgba(59,130,246,0.07),transparent_34%),#F8FAFC] pb-24 text-[#0F172A]">
       <header className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-[#F8FAFC]/95 shadow-sm backdrop-blur-sm">
         <nav
-          className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-5 lg:px-8"
+          className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 sm:py-5 lg:px-8"
           aria-label="Primary navigation"
         >
-          <Link href="/" className="inline-flex items-center py-1" aria-label="Playwright Mastery Academy Home">
-            <Image
-              src="/company-logo.png"
-              alt="Playwright Mastery Academy"
-              width={290}
-              height={96}
-              className="h-16 w-auto sm:h-20"
-              priority
-              unoptimized
-            />
-          </Link>
+          <div className="flex items-center justify-between gap-4">
+            <Link href="/" className="inline-flex items-center py-1" aria-label="Playwright Mastery Academy Home">
+              <Image
+                src="/company-logo.png"
+                alt="Playwright Mastery Academy"
+                width={290}
+                height={96}
+                className="h-12 w-auto sm:h-20"
+                priority
+                unoptimized
+              />
+            </Link>
+            <div className="hidden sm:flex sm:flex-nowrap sm:items-center sm:justify-end sm:gap-4">
+              <ul className="flex flex-nowrap items-center gap-5 text-base">
+                {navLinks.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="block whitespace-nowrap rounded-md px-0 py-0 text-center font-semibold text-[#0F172A] transition-colors duration-200 hover:text-[#2563EB]"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <a
+                href={advisorTelHref}
+                aria-label={`Talk to advisor at ${advisorPhone}`}
+                className="inline-flex w-[9rem] items-center justify-center whitespace-nowrap rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md"
+              >
+                Talk to Advisor
+              </a>
+            </div>
+            <button
+              type="button"
+              aria-label="Toggle mobile menu"
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-nav-menu"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#CBD5E1] bg-white text-[#0F172A] shadow-sm transition-colors duration-200 hover:bg-[#F1F5F9] sm:hidden"
+            >
+              <span className="sr-only">Menu</span>
+              <span className="relative inline-flex h-4 w-5 flex-col justify-between">
+                <span
+                  className={`block h-0.5 w-5 rounded bg-current transition-transform duration-200 ${
+                    isMobileMenuOpen ? "translate-y-[7px] rotate-45" : ""
+                  }`}
+                />
+                <span
+                  className={`block h-0.5 w-5 rounded bg-current transition-opacity duration-200 ${
+                    isMobileMenuOpen ? "opacity-0" : "opacity-100"
+                  }`}
+                />
+                <span
+                  className={`block h-0.5 w-5 rounded bg-current transition-transform duration-200 ${
+                    isMobileMenuOpen ? "-translate-y-[7px] -rotate-45" : ""
+                  }`}
+                />
+              </span>
+            </button>
+          </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-4">
-            <ul className="flex flex-wrap items-center gap-3 text-sm sm:gap-5 sm:text-base">
+          <div
+            id="mobile-nav-menu"
+            className={`overflow-hidden transition-[max-height,opacity,margin] duration-300 sm:hidden ${
+              isMobileMenuOpen ? "mt-3 max-h-80 opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            <ul className="grid grid-cols-2 gap-2 rounded-xl border border-[#E2E8F0] bg-white p-3">
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="font-semibold text-[#0F172A] transition-colors duration-200 hover:text-[#2563EB]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-colors duration-200 hover:text-[#2563EB]"
                   >
                     {link.label}
                   </Link>
@@ -276,8 +333,9 @@ export default function EnrollPage() {
             </ul>
             <a
               href={advisorTelHref}
+              onClick={() => setIsMobileMenuOpen(false)}
               aria-label={`Talk to advisor at ${advisorPhone}`}
-              className="rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md"
+              className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md"
             >
               Talk to Advisor
             </a>
@@ -732,9 +790,9 @@ export default function EnrollPage() {
             <a
               href="#enroll-form"
               data-testid="sticky-enroll-btn"
-              className="animate-pulse rounded-lg border border-[#60A5FA]/30 bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] px-4 py-2 text-sm font-extrabold tracking-wide text-white shadow-[0_14px_28px_-16px_rgba(37,99,235,0.95)] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-110 hover:shadow-[0_18px_34px_-18px_rgba(37,99,235,1)]"
+              className="animate-pulse rounded-lg border border-[#60A5FA]/30 bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] px-3 py-2 text-sm font-extrabold text-white shadow-[0_14px_28px_-16px_rgba(37,99,235,0.95)] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-110 hover:shadow-[0_18px_34px_-18px_rgba(37,99,235,1)] sm:px-4 sm:tracking-wide"
             >
-              Enroll Now - Secure Seat
+              Enroll Now - Seats Limited
             </a>
           </div>
         </div>
@@ -742,6 +800,7 @@ export default function EnrollPage() {
     </div>
   );
 }
+
 
 
 
