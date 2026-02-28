@@ -781,12 +781,12 @@ function SandboxResult({ label, value, dataTestId, state = "idle", className = "
   return (
     <div
       data-testid={dataTestId}
-      className={`mt-2 flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors duration-200 ${stateClasses[state]} ${className}`}
+      className={`mt-2 flex flex-col items-start gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors duration-200 sm:flex-row sm:items-center ${stateClasses[state]} ${className}`}
     >
       <span className="font-semibold text-[#0B2A4A]">{label}:</span>
       <span>{value}</span>
       <span
-        className={`ml-auto rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${chipClasses[state]}`}
+        className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide sm:ml-auto ${chipClasses[state]}`}
       >
         {state === "done" ? "Completed" : state === "loading" ? "In Progress" : "Pending"}
       </span>
@@ -1350,7 +1350,7 @@ export default function PracticePage() {
 
       <main className="mx-auto w-full max-w-6xl space-y-8 px-6 py-10 lg:px-8 lg:py-12">
         <motion.section {...revealProps} className={sectionClass}>
-          <div className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.25fr_0.75fr]">
             <article className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(135deg,#0B2A4A_0%,#1E3A8A_100%)] p-5 text-white shadow-[0_18px_34px_-22px_rgba(11,42,74,0.55)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#BFDBFE]">
@@ -1518,12 +1518,12 @@ await expect(page.getByTestId('locator-chain-status')).toBeVisible();`}</code>
             ) : null}
           </div>
 
-          <div className="mt-5 grid gap-4 lg:grid-cols-3">
+          <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
             <motion.article
               {...withDelay(0.04)}
               className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(160deg,#FFFFFF_0%,#EFF6FF_100%)] p-5 shadow-[0_16px_32px_-26px_rgba(37,99,235,0.4)]"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-lg font-bold text-[#0F172A]">Easy</h3>
                 <span className="rounded-full border border-[#DBEAFE] bg-white px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
                   6 Elements
@@ -1591,7 +1591,7 @@ await expect(page.getByTestId('locator-chain-status')).toBeVisible();`}</code>
               {...withDelay(0.08)}
               className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(160deg,#FFFFFF_0%,#F0F9FF_100%)] p-5 shadow-[0_16px_32px_-26px_rgba(14,116,144,0.36)]"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-lg font-bold text-[#0F172A]">Medium</h3>
                 <span className="rounded-full border border-[#DBEAFE] bg-white px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
                   6 Elements
@@ -1664,15 +1664,15 @@ await expect(page.getByTestId('locator-chain-status')).toBeVisible();`}</code>
               {...withDelay(0.12)}
               className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(160deg,#FFFFFF_0%,#EEF2FF_100%)] p-5 shadow-[0_16px_32px_-26px_rgba(30,58,138,0.36)]"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-lg font-bold text-[#0F172A]">Hard</h3>
                 <span className="rounded-full border border-[#DBEAFE] bg-white px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
                   6 Elements
                 </span>
               </div>
               <div className="mt-4 space-y-3">
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <table data-testid="hard-table" className="w-full text-left text-xs">
+                <div className="overflow-x-auto rounded-lg border border-[#E2E8F0] bg-white p-3">
+                  <table data-testid="hard-table" className="w-full min-w-[300px] text-left text-xs">
                     <thead>
                       <tr className="text-[#334155]">
                         <th className="py-1">ID</th>
@@ -1750,7 +1750,7 @@ await expect(page.getByTestId('locator-chain-status')).toBeVisible();`}</code>
             </motion.article>
           </div>
 
-          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
             <motion.article
               {...withDelay(0.16)}
               className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
@@ -1770,7 +1770,7 @@ await expect(page.getByTestId('locator-chain-status')).toBeVisible();`}</code>
                     data-testid="filter-item"
                     className="rounded-lg border border-[#E2E8F0] bg-white p-3"
                   >
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-wide text-[#2563EB]">
                           {item.level}
@@ -1812,7 +1812,7 @@ await expect(page.getByTestId('locator-chain-status')).toBeVisible();`}</code>
                     data-testid={`chain-card-${card.id}`}
                     className="rounded-lg border border-[#E2E8F0] bg-white p-3"
                   >
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-sm font-semibold text-[#0F172A]">{card.title}</p>
                         <p className="text-xs text-[#64748B]">{card.action}</p>
@@ -1962,18 +1962,18 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
             ) : null}
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 [&>*]:min-w-0 lg:grid-cols-2">
             <motion.article
               {...withDelay(0.02)}
               className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
             >
               <h3 className="text-lg font-bold text-[#0F172A]">Click, Double Click, Hover</h3>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
                 <button
                   type="button"
                   data-testid="single-click-btn"
                   onClick={() => setSingleClickStatus("Single click completed.")}
-                  className="rounded-lg bg-[#2563EB] px-3 py-2 text-sm font-semibold text-white"
+                  className="w-full rounded-lg bg-[#2563EB] px-3 py-2 text-left text-sm font-semibold text-white sm:w-auto sm:text-center"
                 >
                   Single Click
                 </button>
@@ -1981,23 +1981,23 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                   type="button"
                   data-testid="double-click-btn"
                   onDoubleClick={() => setDoubleClickStatus("Double click completed.")}
-                  className="rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-sm font-semibold text-[#1D4ED8]"
+                  className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
                 >
                   Double Click
                 </button>
-                <div className="relative inline-flex items-center">
+                <div className="relative inline-flex w-full items-center sm:w-auto">
                   <button
                     type="button"
                     data-testid="hover-btn"
                     onMouseEnter={() => setHoverStatus("Hover triggered successfully.")}
                     onFocus={() => setHoverStatus("Hover triggered successfully.")}
-                    className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-sm font-semibold text-[#0F172A]"
+                    className="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-left text-sm font-semibold text-[#0F172A] sm:w-auto sm:text-center"
                   >
                     Hover Target
                   </button>
                 </div>
 
-                <div className="relative inline-flex items-center">
+                <div className="relative inline-flex w-full items-center sm:w-auto">
                   <button
                     type="button"
                     data-testid="tooltip-trigger-btn"
@@ -2012,15 +2012,15 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                       setIsHoverTooltipVisible(true);
                     }}
                     onBlur={() => setIsHoverTooltipVisible(false)}
-                    className="inline-flex h-9 items-center justify-center rounded-full border border-[#BFDBFE] bg-[#EFF6FF] px-3 text-xs font-bold text-[#1D4ED8] transition-colors duration-200 hover:bg-[#DBEAFE]"
+                    className="inline-flex h-9 w-full items-center justify-center rounded-full border border-[#BFDBFE] bg-[#EFF6FF] px-3 text-xs font-bold text-[#1D4ED8] transition-colors duration-200 hover:bg-[#DBEAFE] sm:w-auto"
                   >
                     Tooltip
                   </button>
                   <span
                     role="tooltip"
                     data-testid="hover-tooltip"
-                    className={`pointer-events-none absolute left-[calc(100%+8px)] top-1/2 z-10 -translate-y-1/2 whitespace-nowrap rounded-md border border-[#BFDBFE] bg-[#EFF6FF] px-2 py-1 text-xs font-semibold text-[#1D4ED8] shadow-[0_8px_18px_-14px_rgba(37,99,235,0.9)] transition-[opacity,transform] duration-200 ${
-                      isHoverTooltipVisible ? "translate-x-0 opacity-100" : "translate-x-1 opacity-0"
+                    className={`pointer-events-none absolute left-1/2 top-[calc(100%+8px)] z-10 -translate-x-1/2 whitespace-nowrap rounded-md border border-[#BFDBFE] bg-[#EFF6FF] px-2 py-1 text-xs font-semibold text-[#1D4ED8] shadow-[0_8px_18px_-14px_rgba(37,99,235,0.9)] transition-opacity duration-200 sm:left-[calc(100%+8px)] sm:top-1/2 sm:-translate-y-1/2 sm:translate-x-0 ${
+                      isHoverTooltipVisible ? "opacity-100" : "opacity-0"
                     }`}
                   >
                     Tooltip verified
@@ -2097,7 +2097,7 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                   </select>
                 </label>
 
-                <div className="flex flex-wrap gap-4 text-sm text-[#334155]">
+                <div className="grid gap-2 text-sm text-[#334155] sm:flex sm:flex-wrap sm:gap-4">
                   <label className="inline-flex items-center gap-2">
                     <input
                       data-testid="remember-checkbox"
@@ -2268,40 +2268,40 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
 
               <div className="mt-4">
                 <p className="text-sm font-semibold text-[#334155]">Download sample files</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    data-testid="download-pdf-btn"
-                    onClick={() => handleDownloadFile("pdf")}
-                    className="rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-xs font-semibold text-[#1D4ED8]"
-                  >
-                    Download PDF
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="download-csv-btn"
-                    onClick={() => handleDownloadFile("csv")}
-                    className="rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-xs font-semibold text-[#1D4ED8]"
-                  >
-                    Download CSV
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="download-xml-btn"
-                    onClick={() => handleDownloadFile("xml")}
-                    className="rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-xs font-semibold text-[#1D4ED8]"
-                  >
-                    Download XML
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="download-txt-btn"
-                    onClick={() => handleDownloadFile("txt")}
-                    className="rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-xs font-semibold text-[#1D4ED8]"
-                  >
-                    Download TXT
-                  </button>
-                </div>
+              <div className="mt-2 grid gap-2 sm:flex sm:flex-wrap">
+                <button
+                  type="button"
+                  data-testid="download-pdf-btn"
+                  onClick={() => handleDownloadFile("pdf")}
+                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
+                >
+                  Download PDF
+                </button>
+                <button
+                  type="button"
+                  data-testid="download-csv-btn"
+                  onClick={() => handleDownloadFile("csv")}
+                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
+                >
+                  Download CSV
+                </button>
+                <button
+                  type="button"
+                  data-testid="download-xml-btn"
+                  onClick={() => handleDownloadFile("xml")}
+                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
+                >
+                  Download XML
+                </button>
+                <button
+                  type="button"
+                  data-testid="download-txt-btn"
+                  onClick={() => handleDownloadFile("txt")}
+                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
+                >
+                  Download TXT
+                </button>
+              </div>
               </div>
 
               <SandboxResult
@@ -2317,12 +2317,12 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
               className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
             >
               <h3 className="text-lg font-bold text-[#0F172A]">Dialogs and Popup</h3>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
                 <button
                   type="button"
                   data-testid="alert-btn"
                   onClick={triggerAlert}
-                  className="rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-sm font-semibold text-[#1D4ED8]"
+                  className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
                 >
                   Trigger Alert
                 </button>
@@ -2330,7 +2330,7 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                   type="button"
                   data-testid="confirm-btn"
                   onClick={triggerConfirm}
-                  className="rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-sm font-semibold text-[#1D4ED8]"
+                  className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
                 >
                   Trigger Confirm
                 </button>
@@ -2338,7 +2338,7 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                   type="button"
                   data-testid="prompt-btn"
                   onClick={triggerPrompt}
-                  className="rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-sm font-semibold text-[#1D4ED8]"
+                  className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
                 >
                   Trigger Prompt
                 </button>
@@ -2497,12 +2497,12 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                 <code>locator.waitFor</code>, <code>waitForSelector</code>.
               </p>
 
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
                 <a
                   href="/practice/popup?source=waitfornavigation"
                   data-testid="wait-navigation-link"
                   onClick={handleDelayedNavigation}
-                  className="rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-xs font-semibold text-[#1D4ED8]"
+                  className="block w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
                 >
                   Navigation Link
                 </a>
@@ -2510,7 +2510,7 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                   type="button"
                   data-testid="wait-response-btn"
                   onClick={triggerWaitResponse}
-                  className="rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-xs font-semibold text-[#1D4ED8]"
+                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
                 >
                   Trigger API Response
                 </button>
@@ -2518,7 +2518,7 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                   type="button"
                   data-testid="wait-url-btn"
                   onClick={triggerWaitUrlChange}
-                  className="rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-xs font-semibold text-[#1D4ED8]"
+                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
                 >
                   Update URL
                 </button>
@@ -2526,18 +2526,18 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                   type="button"
                   data-testid="wait-loadstate-link"
                   onClick={triggerWaitLoadState}
-                  className="rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-xs font-semibold text-[#1D4ED8]"
+                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
                 >
                   Reload for LoadState
                 </button>
               </div>
 
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
                 <button
                   type="button"
                   data-testid="wait-locator-btn"
                   onClick={triggerLocatorWaitTarget}
-                  className="rounded-md bg-[#0B2A4A] px-3 py-1.5 text-xs font-semibold text-white"
+                  className="w-full rounded-md bg-[#0B2A4A] px-3 py-1.5 text-left text-xs font-semibold text-white sm:w-auto sm:text-center"
                 >
                   Reveal Locator Target
                 </button>
@@ -2545,7 +2545,7 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                   type="button"
                   data-testid="wait-selector-btn"
                   onClick={triggerSelectorWaitTarget}
-                  className="rounded-md bg-[#0B2A4A] px-3 py-1.5 text-xs font-semibold text-white"
+                  className="w-full rounded-md bg-[#0B2A4A] px-3 py-1.5 text-left text-xs font-semibold text-white sm:w-auto sm:text-center"
                 >
                   Reveal Selector Target
                 </button>
@@ -2604,7 +2604,7 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
 
           </div>
 
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="mt-4 grid grid-cols-1 gap-4 [&>*]:min-w-0 lg:grid-cols-2">
             <motion.article
               {...withDelay(0.2)}
               className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
