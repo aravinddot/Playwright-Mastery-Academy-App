@@ -150,7 +150,7 @@ function SoftCard({ children, delay = 0, className = "" }) {
 }
 
 export default function EnrollPage() {
-  const advisorPhone = process.env.NEXT_PUBLIC_ADVISOR_PHONE || "+919000000000";
+  const advisorPhone = process.env.NEXT_PUBLIC_ADVISOR_PHONE || "+916385161126";
   const advisorTelHref = `tel:${advisorPhone.replace(/\s+/g, "")}`;
   const [submitted, setSubmitted] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
