@@ -350,7 +350,7 @@ const reveal = {
 };
 
 const sectionClass =
-  "rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_14px_34px_-24px_rgba(11,42,74,0.35)] sm:p-8";
+  "relative overflow-hidden rounded-2xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F9FBFF_100%)] p-6 shadow-[0_22px_48px_-30px_rgba(11,42,74,0.45)] sm:p-8";
 
 function withDelay(delay) {
   return {
@@ -368,7 +368,7 @@ function ModuleCard({ module, isOpen, onToggle, delay = 0 }) {
   return (
     <motion.article
       {...withDelay(delay)}
-      className="rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-[0_14px_34px_-24px_rgba(11,42,74,0.35)] transition-[border-color,transform,box-shadow] duration-200 md:hover:-translate-y-0.5 md:hover:border-[#2563EB] md:hover:shadow-[0_18px_40px_-24px_rgba(37,99,235,0.28)]"
+      className="rounded-2xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F9FBFF_100%)] p-5 shadow-[0_16px_36px_-26px_rgba(11,42,74,0.42)] transition-[border-color,transform,box-shadow] duration-200 md:hover:-translate-y-0.5 md:hover:border-[#2563EB] md:hover:shadow-[0_20px_42px_-24px_rgba(37,99,235,0.32)]"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-lg font-bold text-[#0F172A]">{module.title}</h3>
@@ -384,7 +384,7 @@ function ModuleCard({ module, isOpen, onToggle, delay = 0 }) {
         aria-expanded={isOpen}
         aria-controls={contentId}
         onClick={onToggle}
-        className="mt-4 inline-flex w-full items-center justify-between rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-left text-sm font-semibold text-[#0F172A] transition-colors duration-200 hover:border-[#2563EB] hover:text-[#2563EB]"
+        className="mt-4 inline-flex w-full items-center justify-between rounded-xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F1F5F9_100%)] px-3 py-2 text-left text-sm font-semibold text-[#0F172A] transition-colors duration-200 hover:border-[#2563EB] hover:text-[#2563EB]"
       >
         <span>View Topics ({module.topics.length})</span>
         <svg
@@ -455,13 +455,18 @@ export default function CurriculumPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_12%_9%,rgba(37,99,235,0.08),transparent_36%),radial-gradient(circle_at_88%_26%,rgba(59,130,246,0.07),transparent_34%),#F8FAFC] text-[#0F172A]">
-      <header className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-[#F8FAFC]/95 shadow-sm backdrop-blur-sm">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_12%_9%,rgba(37,99,235,0.12),transparent_34%),radial-gradient(circle_at_88%_20%,rgba(59,130,246,0.1),transparent_32%),radial-gradient(circle_at_50%_96%,rgba(191,219,254,0.32),transparent_36%),#F8FAFC] text-[#0F172A]">
+      <header className="sticky top-0 z-50 border-b border-[#D6E3F8]/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(248,250,252,0.84)_100%)] shadow-[0_14px_34px_-24px_rgba(11,42,74,0.55)] backdrop-blur-xl">
         <nav
-          className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 sm:py-5 lg:px-8"
+          className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8"
           aria-label="Primary navigation"
         >
-          <div className="flex items-center justify-between gap-4">
+          <div className="relative">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 -z-10 rounded-2xl bg-[conic-gradient(from_140deg_at_50%_50%,rgba(59,130,246,0.28),rgba(147,197,253,0.08),rgba(37,99,235,0.26),rgba(59,130,246,0.28))] blur-sm"
+            />
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-[#DCE6F8] bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(248,250,252,0.9)_100%)] px-3 py-2 shadow-[0_16px_34px_-24px_rgba(11,42,74,0.58)] sm:px-4">
             <Link href="/" className="inline-flex items-center py-1" aria-label="Playwright Mastery Academy Home">
               <Image
                 src="/company-logo.png"
@@ -475,24 +480,24 @@ export default function CurriculumPage() {
             </Link>
 
             <div className="hidden sm:flex sm:flex-nowrap sm:items-center sm:justify-end sm:gap-4">
-              <ul className="flex flex-nowrap items-center gap-5 text-base">
+              <ul className="flex flex-nowrap items-center gap-1.5 rounded-xl border border-[#DBEAFE] bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(241,245,249,0.9)_100%)] p-1.5 text-base shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_10px_24px_-20px_rgba(11,42,74,0.45)]">
                 <li>
-                  <Link href="/" className="block whitespace-nowrap rounded-md px-0 py-0 text-center font-semibold text-[#0F172A] transition-colors duration-200 hover:text-[#2563EB]">
+                  <Link href="/" className="block whitespace-nowrap rounded-lg px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-[background-color,color,transform] duration-200 hover:-translate-y-px hover:bg-[#F8FAFC] hover:text-[#2563EB]">
                     Home
                   </Link>
                 </li>
                 <li>
-                  <Link href="/curriculum" className="block whitespace-nowrap rounded-md px-0 py-0 text-center font-semibold text-[#2563EB]">
+                  <Link href="/curriculum" className="block whitespace-nowrap rounded-lg bg-[linear-gradient(180deg,#EFF6FF_0%,#DBEAFE_100%)] px-3 py-2 text-center text-sm font-semibold text-[#1D4ED8] shadow-[0_8px_18px_-14px_rgba(37,99,235,0.8)]">
                     Curriculum
                   </Link>
                 </li>
                 <li>
-                  <Link href="/testimonials" className="block whitespace-nowrap rounded-md px-0 py-0 text-center font-semibold text-[#0F172A] transition-colors duration-200 hover:text-[#2563EB]">
+                  <Link href="/testimonials" className="block whitespace-nowrap rounded-lg px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-[background-color,color,transform] duration-200 hover:-translate-y-px hover:bg-[#F8FAFC] hover:text-[#2563EB]">
                     Testimonials
                   </Link>
                 </li>
                 <li>
-                  <Link href="/practice" className="block whitespace-nowrap rounded-md px-0 py-0 text-center font-semibold text-[#0F172A] transition-colors duration-200 hover:text-[#2563EB]">
+                  <Link href="/practice" className="block whitespace-nowrap rounded-lg px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-[background-color,color,transform] duration-200 hover:-translate-y-px hover:bg-[#F8FAFC] hover:text-[#2563EB]">
                     Practice
                   </Link>
                 </li>
@@ -500,7 +505,7 @@ export default function CurriculumPage() {
 
               <Link
                 href="/enroll"
-                className="inline-flex w-auto items-center justify-center whitespace-nowrap rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md sm:w-[9rem]"
+                className="inline-flex w-auto items-center justify-center whitespace-nowrap rounded-lg border border-[#1D4ED8]/70 bg-[linear-gradient(135deg,#2563EB_0%,#1D4ED8_55%,#1E40AF_100%)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_-16px_rgba(37,99,235,0.9)] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-105 hover:shadow-[0_20px_36px_-16px_rgba(37,99,235,0.92)] sm:w-[9rem]"
               >
                 Enroll Now
               </Link>
@@ -512,7 +517,7 @@ export default function CurriculumPage() {
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-nav-menu"
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#CBD5E1] bg-white text-[#0F172A] shadow-sm transition-colors duration-200 hover:bg-[#F1F5F9] sm:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#CBD5E1] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FAFC_100%)] text-[#0F172A] shadow-[0_10px_22px_-16px_rgba(11,42,74,0.55)] transition-colors duration-200 hover:bg-[#F1F5F9] sm:hidden"
             >
               <span className="sr-only">Menu</span>
               <span className="relative inline-flex h-4 w-5 flex-col justify-between">
@@ -533,6 +538,7 @@ export default function CurriculumPage() {
                 />
               </span>
             </button>
+            </div>
           </div>
 
           <div
@@ -541,12 +547,13 @@ export default function CurriculumPage() {
               isMobileMenuOpen ? "mt-3 max-h-80 opacity-100" : "max-h-0 opacity-0"
             }`}
           >
-            <ul className="grid grid-cols-2 gap-2 rounded-xl border border-[#E2E8F0] bg-white p-3">
+            <div className="rounded-2xl border border-[#DCE6F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FAFC_100%)] p-3 shadow-[0_20px_38px_-24px_rgba(11,42,74,0.48)]">
+            <ul className="grid grid-cols-2 gap-2">
               <li>
                 <Link
                   href="/"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-colors duration-200 hover:text-[#2563EB]"
+                  className="block rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-[transform,color] duration-200 hover:-translate-y-px hover:text-[#2563EB]"
                 >
                   Home
                 </Link>
@@ -555,7 +562,7 @@ export default function CurriculumPage() {
                 <Link
                   href="/curriculum"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-center text-sm font-semibold text-[#2563EB]"
+                  className="block rounded-lg border border-[#BFDBFE] bg-[linear-gradient(180deg,#EFF6FF_0%,#DBEAFE_100%)] px-3 py-2 text-center text-sm font-semibold text-[#1D4ED8]"
                 >
                   Curriculum
                 </Link>
@@ -564,7 +571,7 @@ export default function CurriculumPage() {
                 <Link
                   href="/testimonials"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-colors duration-200 hover:text-[#2563EB]"
+                  className="block rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-[transform,color] duration-200 hover:-translate-y-px hover:text-[#2563EB]"
                 >
                   Testimonials
                 </Link>
@@ -573,7 +580,7 @@ export default function CurriculumPage() {
                 <Link
                   href="/practice"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-colors duration-200 hover:text-[#2563EB]"
+                  className="block rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-[transform,color] duration-200 hover:-translate-y-px hover:text-[#2563EB]"
                 >
                   Practice
                 </Link>
@@ -582,42 +589,58 @@ export default function CurriculumPage() {
             <Link
               href="/enroll"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md"
+              className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-[#1D4ED8]/70 bg-[linear-gradient(135deg,#2563EB_0%,#1D4ED8_55%,#1E40AF_100%)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_28px_-18px_rgba(37,99,235,0.88)] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-105 hover:shadow-[0_18px_34px_-18px_rgba(37,99,235,0.92)]"
             >
               Enroll Now
             </Link>
+            </div>
           </div>
         </nav>
       </header>
 
-      <section className="border-b border-[#0b2a4a]/40 bg-[linear-gradient(135deg,#0B2A4A_0%,#1E3A8A_100%)]">
-        <div className="mx-auto w-full max-w-6xl px-6 py-10 lg:px-8 lg:py-12">
-          <motion.h1 {...reveal} className="text-4xl font-black tracking-tight text-white sm:text-5xl">
-            Curriculum
-          </motion.h1>
-          <motion.p
-            {...reveal}
-            transition={{ ...reveal.transition, delay: 0.05 }}
-            className="mt-4 max-w-4xl text-base leading-7 text-white/90 sm:text-lg"
-          >
-            A step-by-step roadmap from JavaScript & TypeScript fundamentals to Playwright frameworks, CI/CD,
-            BDD, and AI-assisted automation.
-          </motion.p>
+      <section className="relative overflow-hidden border-b border-[#0b2a4a]/40 bg-[linear-gradient(135deg,#0B2A4A_0%,#1E3A8A_100%)]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-20 top-4 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(147,197,253,0.24),transparent_68%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute right-0 top-0 h-72 w-72 bg-[radial-gradient(circle,rgba(255,255,255,0.14),transparent_72%)]"
+        />
 
-          <motion.div
-            {...reveal}
-            transition={{ ...reveal.transition, delay: 0.1 }}
-            className="mt-6 flex flex-wrap gap-3"
-          >
-            {statChips.map((chip) => (
-              <span
-                key={chip}
-                className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm"
-              >
-                {chip}
-              </span>
-            ))}
-          </motion.div>
+        <div className="mx-auto w-full max-w-6xl px-6 py-10 lg:px-8 lg:py-12">
+          <div className="rounded-2xl border border-white/20 bg-[linear-gradient(165deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-6 shadow-[0_24px_50px_-24px_rgba(11,42,74,0.82)] backdrop-blur-md sm:p-8">
+            <span className="inline-flex rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-[#DBEAFE]">
+              Program Roadmap
+            </span>
+            <motion.h1 {...reveal} className="mt-3 text-4xl font-black tracking-tight text-white sm:text-5xl">
+              Curriculum
+            </motion.h1>
+            <motion.p
+              {...reveal}
+              transition={{ ...reveal.transition, delay: 0.05 }}
+              className="mt-4 max-w-4xl text-base leading-7 text-white/90 sm:text-lg"
+            >
+              A step-by-step roadmap from JavaScript & TypeScript fundamentals to Playwright frameworks, CI/CD,
+              BDD, and AI-assisted automation.
+            </motion.p>
+
+            <motion.div
+              {...reveal}
+              transition={{ ...reveal.transition, delay: 0.1 }}
+              className="mt-6 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5"
+            >
+              {statChips.map((chip, index) => (
+                <motion.span
+                  key={chip}
+                  {...withDelay(index * 0.05)}
+                  className="rounded-xl border border-white/25 bg-white/10 px-3 py-2 text-center text-xs font-semibold text-white sm:text-sm"
+                >
+                  {chip}
+                </motion.span>
+              ))}
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -630,7 +653,7 @@ export default function CurriculumPage() {
             id="jump-to-section"
             onChange={jumpToSection}
             defaultValue=""
-            className="w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2.5 text-sm text-[#0F172A] shadow-sm focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#BFDBFE]"
+            className="w-full rounded-xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FAFC_100%)] px-3 py-2.5 text-sm text-[#0F172A] shadow-[0_12px_24px_-20px_rgba(11,42,74,0.45)] focus:border-[#2563EB] focus:outline-none focus:ring-2 focus:ring-[#BFDBFE]"
           >
             <option value="" disabled>
               Select a section
@@ -645,7 +668,7 @@ export default function CurriculumPage() {
 
         <div className="grid gap-7 lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="hidden lg:block">
-            <div className="sticky top-28 rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-[0_14px_34px_-24px_rgba(11,42,74,0.35)]">
+            <div className="sticky top-28 rounded-2xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F9FBFF_100%)] p-4 shadow-[0_20px_42px_-28px_rgba(11,42,74,0.45)]">
               <p className="mb-3 text-sm font-bold uppercase tracking-wide text-[#2563EB]">
                 Curriculum Sections
               </p>
@@ -654,7 +677,7 @@ export default function CurriculumPage() {
                   <li key={section.id}>
                     <a
                       href={`#${section.id}`}
-                      className="block rounded-lg px-3 py-2 text-sm font-semibold text-[#0F172A] transition-colors duration-200 hover:bg-[#EFF6FF] hover:text-[#2563EB]"
+                      className="block rounded-lg px-3 py-2 text-sm font-semibold text-[#0F172A] transition-[background-color,color,transform] duration-200 hover:-translate-y-px hover:bg-[#EFF6FF] hover:text-[#2563EB]"
                     >
                       {section.title}
                     </a>
@@ -696,7 +719,7 @@ export default function CurriculumPage() {
         <div className="mx-auto w-full max-w-6xl px-6 lg:px-8">
           <motion.div
             {...reveal}
-            className="rounded-xl border border-[#0b2a4a]/40 bg-[linear-gradient(135deg,#0B2A4A_0%,#1E3A8A_100%)] p-8 text-white shadow-[0_22px_48px_-24px_rgba(11,42,74,0.85)] sm:p-10"
+            className="rounded-2xl border border-[#0b2a4a]/40 bg-[linear-gradient(135deg,#0B2A4A_0%,#1E3A8A_100%)] p-8 text-white shadow-[0_22px_48px_-24px_rgba(11,42,74,0.85)] sm:p-10"
           >
             <p className="text-center text-sm font-bold tracking-[0.18em] text-[#DBEAFE]">
               -- GET READY FOR PLACEMENTS --

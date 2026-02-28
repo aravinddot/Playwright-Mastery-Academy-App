@@ -615,6 +615,7 @@ const initialSandboxStatus = {
   singleClick: "Waiting for single click.",
   doubleClick: "Waiting for double click.",
   hover: "Hover target not triggered.",
+  hoverTooltip: "Tooltip not verified.",
   form: "Form not submitted.",
   keyboard: "Press Enter in the command input.",
   async: "Async action not started.",
@@ -802,6 +803,8 @@ export default function PracticePage() {
   const [singleClickStatus, setSingleClickStatus] = useState(initialSandboxStatus.singleClick);
   const [doubleClickStatus, setDoubleClickStatus] = useState(initialSandboxStatus.doubleClick);
   const [hoverStatus, setHoverStatus] = useState(initialSandboxStatus.hover);
+  const [hoverTooltipStatus, setHoverTooltipStatus] = useState(initialSandboxStatus.hoverTooltip);
+  const [isHoverTooltipVisible, setIsHoverTooltipVisible] = useState(false);
   const [formStatus, setFormStatus] = useState(initialSandboxStatus.form);
   const [rememberChoice, setRememberChoice] = useState(false);
   const [learningMode, setLearningMode] = useState("ui");
@@ -1184,12 +1187,17 @@ export default function PracticePage() {
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_8%_15%,rgba(59,130,246,0.12),transparent_28%),radial-gradient(circle_at_92%_12%,rgba(29,78,216,0.12),transparent_30%),radial-gradient(circle_at_50%_85%,rgba(147,197,253,0.18),transparent_34%)]"
       />
-      <header className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-[#F8FAFC]/95 shadow-sm backdrop-blur-sm">
+      <header className="sticky top-0 z-50 border-b border-[#D6E3F8]/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(248,250,252,0.84)_100%)] shadow-[0_14px_34px_-24px_rgba(11,42,74,0.55)] backdrop-blur-xl">
         <nav
-          className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 sm:py-5 lg:px-8"
+          className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8"
           aria-label="Primary navigation"
         >
-          <div className="flex items-center justify-between gap-4">
+          <div className="relative">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 -z-10 rounded-2xl bg-[conic-gradient(from_140deg_at_50%_50%,rgba(59,130,246,0.28),rgba(147,197,253,0.08),rgba(37,99,235,0.26),rgba(59,130,246,0.28))] blur-sm"
+            />
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-[#DCE6F8] bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(248,250,252,0.9)_100%)] px-3 py-2 shadow-[0_16px_34px_-24px_rgba(11,42,74,0.58)] sm:px-4">
             <Link href="/" className="inline-flex items-center py-1" aria-label="Playwright Mastery Academy Home">
               <Image
                 src="/company-logo.png"
@@ -1203,15 +1211,15 @@ export default function PracticePage() {
             </Link>
 
             <div className="hidden sm:flex sm:flex-nowrap sm:items-center sm:justify-end sm:gap-4">
-              <ul className="flex flex-nowrap items-center gap-5 text-base">
+              <ul className="flex flex-nowrap items-center gap-1.5 rounded-xl border border-[#DBEAFE] bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(241,245,249,0.9)_100%)] p-1.5 text-base shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_10px_24px_-20px_rgba(11,42,74,0.45)]">
                 {navLinks.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className={`block whitespace-nowrap rounded-md px-0 py-0 text-center font-semibold transition-colors duration-200 ${
+                      className={`block whitespace-nowrap rounded-lg px-3 py-2 text-center text-sm font-semibold transition-[background-color,color,transform] duration-200 ${
                         link.label === "Practice"
-                          ? "text-[#2563EB]"
-                          : "text-[#0F172A] hover:text-[#2563EB]"
+                          ? "bg-[linear-gradient(180deg,#EFF6FF_0%,#DBEAFE_100%)] text-[#1D4ED8] shadow-[0_8px_18px_-14px_rgba(37,99,235,0.8)]"
+                          : "text-[#0F172A] hover:-translate-y-px hover:bg-[#F8FAFC] hover:text-[#2563EB]"
                       }`}
                     >
                       {link.label}
@@ -1222,7 +1230,7 @@ export default function PracticePage() {
               <Link
                 href="/enroll"
                 aria-label="Enroll Now"
-                className="inline-flex w-auto items-center justify-center whitespace-nowrap rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md sm:w-[9rem]"
+                className="inline-flex w-auto items-center justify-center whitespace-nowrap rounded-lg border border-[#1D4ED8]/70 bg-[linear-gradient(135deg,#2563EB_0%,#1D4ED8_55%,#1E40AF_100%)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_-16px_rgba(37,99,235,0.9)] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-105 hover:shadow-[0_20px_36px_-16px_rgba(37,99,235,0.92)] sm:w-[9rem]"
               >
                 Enroll Now
               </Link>
@@ -1234,7 +1242,7 @@ export default function PracticePage() {
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-nav-menu"
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#CBD5E1] bg-white text-[#0F172A] shadow-sm transition-colors duration-200 hover:bg-[#F1F5F9] sm:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#CBD5E1] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FAFC_100%)] text-[#0F172A] shadow-[0_10px_22px_-16px_rgba(11,42,74,0.55)] transition-colors duration-200 hover:bg-[#F1F5F9] sm:hidden"
             >
               <span className="sr-only">Menu</span>
               <span className="relative inline-flex h-4 w-5 flex-col justify-between">
@@ -1255,6 +1263,7 @@ export default function PracticePage() {
                 />
               </span>
             </button>
+            </div>
           </div>
 
           <div
@@ -1263,16 +1272,17 @@ export default function PracticePage() {
               isMobileMenuOpen ? "mt-3 max-h-80 opacity-100" : "max-h-0 opacity-0"
             }`}
           >
-            <ul className="grid grid-cols-2 gap-2 rounded-xl border border-[#E2E8F0] bg-white p-3">
+            <div className="rounded-2xl border border-[#DCE6F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FAFC_100%)] p-3 shadow-[0_20px_38px_-24px_rgba(11,42,74,0.48)]">
+            <ul className="grid grid-cols-2 gap-2">
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`block rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-center text-sm font-semibold transition-colors duration-200 ${
+                    className={`block rounded-lg border px-3 py-2 text-center text-sm font-semibold transition-[transform,color] duration-200 ${
                       link.label === "Practice"
-                        ? "text-[#2563EB]"
-                        : "text-[#0F172A] hover:text-[#2563EB]"
+                        ? "border-[#BFDBFE] bg-[linear-gradient(180deg,#EFF6FF_0%,#DBEAFE_100%)] text-[#1D4ED8]"
+                        : "border-[#E2E8F0] bg-white text-[#0F172A] hover:-translate-y-px hover:text-[#2563EB]"
                     }`}
                   >
                     {link.label}
@@ -1284,10 +1294,11 @@ export default function PracticePage() {
               href="/enroll"
               onClick={() => setIsMobileMenuOpen(false)}
               aria-label="Enroll Now"
-              className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md"
+              className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-[#1D4ED8]/70 bg-[linear-gradient(135deg,#2563EB_0%,#1D4ED8_55%,#1E40AF_100%)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_28px_-18px_rgba(37,99,235,0.88)] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-105 hover:shadow-[0_18px_34px_-18px_rgba(37,99,235,0.92)]"
             >
               Enroll Now
             </Link>
+            </div>
           </div>
         </nav>
       </header>
@@ -1302,36 +1313,38 @@ export default function PracticePage() {
           className="pointer-events-none absolute right-0 top-0 h-48 w-56 bg-[radial-gradient(circle,rgba(255,255,255,0.14),transparent_72%)]"
         />
         <div className="mx-auto w-full max-w-6xl px-6 py-12 lg:px-8 lg:py-14">
-          <motion.h1 {...revealProps} className="text-4xl font-black tracking-tight text-white sm:text-5xl">
-            Playwright Practice Lab
-          </motion.h1>
-          <motion.p
-            {...revealProps}
-            transition={{ ...revealProps.transition, delay: 0.05 }}
-            className="mt-4 max-w-4xl text-base leading-7 text-white/90 sm:text-lg"
-          >
-            Practice Playwright end-to-end with locator drills, interactive sandbox targets,
-            network interception and mocking labs, and large-table pagination with filters.
-          </motion.p>
+          <div className="rounded-2xl border border-white/20 bg-[linear-gradient(165deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-6 shadow-[0_24px_50px_-24px_rgba(11,42,74,0.82)] backdrop-blur-md sm:p-8">
+            <motion.h1 {...revealProps} className="text-4xl font-black tracking-tight text-white sm:text-5xl">
+              Playwright Practice Lab
+            </motion.h1>
+            <motion.p
+              {...revealProps}
+              transition={{ ...revealProps.transition, delay: 0.05 }}
+              className="mt-4 max-w-4xl text-base leading-7 text-white/90 sm:text-lg"
+            >
+              Practice Playwright end-to-end with locator drills, interactive sandbox targets,
+              network interception and mocking labs, and large-table pagination with filters.
+            </motion.p>
 
-          <motion.div
-            {...revealProps}
-            transition={{ ...revealProps.transition, delay: 0.1 }}
-            className="mt-6 flex flex-wrap gap-3"
-          >
-            <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
-              Core Function Drills + Dedicated Labs
-            </span>
-            <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
-              Locator + Sandbox + Wait Labs
-            </span>
-            <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
-              Network Interception + Mocking Lab
-            </span>
-            <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
-              3200-Row Table Pagination + Filters
-            </span>
-          </motion.div>
+            <motion.div
+              {...revealProps}
+              transition={{ ...revealProps.transition, delay: 0.1 }}
+              className="mt-6 flex flex-wrap gap-3"
+            >
+              <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
+                Core Function Drills + Dedicated Labs
+              </span>
+              <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
+                Locator + Sandbox + Wait Labs
+              </span>
+              <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
+                Network Interception + Mocking Lab
+              </span>
+              <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
+                3200-Row Table Pagination + Filters
+              </span>
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -1972,14 +1985,47 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                 >
                   Double Click
                 </button>
-                <button
-                  type="button"
-                  data-testid="hover-btn"
-                  onMouseEnter={() => setHoverStatus("Hover triggered successfully.")}
-                  className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-sm font-semibold text-[#0F172A]"
-                >
-                  Hover Target
-                </button>
+                <div className="relative inline-flex items-center">
+                  <button
+                    type="button"
+                    data-testid="hover-btn"
+                    onMouseEnter={() => setHoverStatus("Hover triggered successfully.")}
+                    onFocus={() => setHoverStatus("Hover triggered successfully.")}
+                    className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-sm font-semibold text-[#0F172A]"
+                  >
+                    Hover Target
+                  </button>
+                </div>
+
+                <div className="relative inline-flex items-center">
+                  <button
+                    type="button"
+                    data-testid="tooltip-trigger-btn"
+                    aria-label="Tooltip target"
+                    onMouseEnter={() => {
+                      setHoverTooltipStatus("Tooltip verified successfully.");
+                      setIsHoverTooltipVisible(true);
+                    }}
+                    onMouseLeave={() => setIsHoverTooltipVisible(false)}
+                    onFocus={() => {
+                      setHoverTooltipStatus("Tooltip verified successfully.");
+                      setIsHoverTooltipVisible(true);
+                    }}
+                    onBlur={() => setIsHoverTooltipVisible(false)}
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-[#BFDBFE] bg-[#EFF6FF] px-3 text-xs font-bold text-[#1D4ED8] transition-colors duration-200 hover:bg-[#DBEAFE]"
+                  >
+                    Tooltip
+                  </button>
+                  <span
+                    role="tooltip"
+                    data-testid="hover-tooltip"
+                    className={`pointer-events-none absolute left-[calc(100%+8px)] top-1/2 z-10 -translate-y-1/2 whitespace-nowrap rounded-md border border-[#BFDBFE] bg-[#EFF6FF] px-2 py-1 text-xs font-semibold text-[#1D4ED8] shadow-[0_8px_18px_-14px_rgba(37,99,235,0.9)] transition-[opacity,transform] duration-200 ${
+                      isHoverTooltipVisible ? "translate-x-0 opacity-100" : "translate-x-1 opacity-0"
+                    }`}
+                  >
+                    Tooltip verified
+                  </span>
+                </div>
               </div>
               <div className="mt-3 space-y-1">
                 <SandboxResult
@@ -1999,6 +2045,12 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                   value={hoverStatus}
                   dataTestId="hover-status"
                   state={hoverStatus !== initialSandboxStatus.hover ? "done" : "idle"}
+                />
+                <SandboxResult
+                  label="Tooltip"
+                  value={hoverTooltipStatus}
+                  dataTestId="hover-tooltip-status"
+                  state={hoverTooltipStatus !== initialSandboxStatus.hoverTooltip ? "done" : "idle"}
                 />
               </div>
             </motion.article>
@@ -2658,12 +2710,27 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                       </h3>
                     </div>
                     <span
-                      className={`mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full border border-[#DBEAFE] bg-[#EFF6FF] text-sm font-bold text-[#2563EB] transition-transform duration-200 ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
+                      className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full border border-[#DBEAFE] bg-[#EFF6FF] text-[#2563EB]"
                       aria-hidden="true"
                     >
-                      ?
+                      <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" aria-hidden="true">
+                        <path
+                          d="M5 10H15"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                        />
+                        {!isOpen ? (
+                          <path
+                            d="M10 5V15"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                          />
+                        ) : null}
+                      </svg>
                     </span>
                   </button>
 

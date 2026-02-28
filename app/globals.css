@@ -8,4 +8,14 @@
   body {
     @apply antialiased text-slate-900;
   }
+
+  body.enroll-page-with-sticky-bar footer {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
+
+  @media (max-width: 640px) {
+    body.enroll-page-with-sticky-bar footer {
+      padding-bottom: calc(6.25rem + env(safe-area-inset-bottom));
+    }
+  }
 }

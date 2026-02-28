@@ -120,7 +120,7 @@ const testimonialVideoCards = [
 const initialCountdownSeconds = 10 * 60;
 
 const sectionClass =
-  "rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_14px_34px_-24px_rgba(11,42,74,0.35)] sm:p-8";
+  "relative overflow-hidden rounded-2xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F9FBFF_100%)] p-6 shadow-[0_22px_48px_-30px_rgba(11,42,74,0.45)] sm:p-8";
 
 const revealProps = {
   initial: { opacity: 0.92, y: 10 },
@@ -142,7 +142,7 @@ function SoftCard({ children, delay = 0, className = "" }) {
   return (
     <motion.article
       {...withDelay(delay)}
-      className={`rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-[0_14px_34px_-24px_rgba(11,42,74,0.35)] transition-[transform,border-color,box-shadow] duration-200 md:hover:-translate-y-0.5 md:hover:border-[#2563EB] md:hover:shadow-[0_18px_38px_-20px_rgba(37,99,235,0.28)] ${className}`}
+      className={`rounded-2xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F9FBFF_100%)] p-5 shadow-[0_16px_36px_-26px_rgba(11,42,74,0.42)] transition-[transform,border-color,box-shadow] duration-200 md:hover:-translate-y-0.5 md:hover:border-[#2563EB] md:hover:shadow-[0_20px_42px_-24px_rgba(37,99,235,0.32)] ${className}`}
     >
       {children}
     </motion.article>
@@ -189,6 +189,13 @@ export default function EnrollPage() {
     }, 1000);
 
     return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.add("enroll-page-with-sticky-bar");
+    return () => {
+      document.body.classList.remove("enroll-page-with-sticky-bar");
+    };
   }, []);
 
   const countdownMinutes = Math.floor(countdownSeconds / 60);
@@ -244,13 +251,18 @@ export default function EnrollPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_12%_9%,rgba(37,99,235,0.08),transparent_36%),radial-gradient(circle_at_88%_26%,rgba(59,130,246,0.07),transparent_34%),#F8FAFC] pb-24 text-[#0F172A]">
-      <header className="sticky top-0 z-50 border-b border-[#E2E8F0] bg-[#F8FAFC]/95 shadow-sm backdrop-blur-sm">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_12%_9%,rgba(37,99,235,0.12),transparent_34%),radial-gradient(circle_at_88%_20%,rgba(59,130,246,0.1),transparent_32%),radial-gradient(circle_at_50%_96%,rgba(191,219,254,0.32),transparent_36%),#F8FAFC] pb-24 text-[#0F172A]">
+      <header className="sticky top-0 z-50 border-b border-[#D6E3F8]/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(248,250,252,0.84)_100%)] shadow-[0_14px_34px_-24px_rgba(11,42,74,0.55)] backdrop-blur-xl">
         <nav
-          className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 sm:py-5 lg:px-8"
+          className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8"
           aria-label="Primary navigation"
         >
-          <div className="flex items-center justify-between gap-4">
+          <div className="relative">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 -z-10 rounded-2xl bg-[conic-gradient(from_140deg_at_50%_50%,rgba(59,130,246,0.28),rgba(147,197,253,0.08),rgba(37,99,235,0.26),rgba(59,130,246,0.28))] blur-sm"
+            />
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-[#DCE6F8] bg-[linear-gradient(180deg,rgba(255,255,255,0.95)_0%,rgba(248,250,252,0.9)_100%)] px-3 py-2 shadow-[0_16px_34px_-24px_rgba(11,42,74,0.58)] sm:px-4">
             <Link href="/" className="inline-flex items-center py-1" aria-label="Playwright Mastery Academy Home">
               <Image
                 src="/company-logo.png"
@@ -263,12 +275,12 @@ export default function EnrollPage() {
               />
             </Link>
             <div className="hidden sm:flex sm:flex-nowrap sm:items-center sm:justify-end sm:gap-4">
-              <ul className="flex flex-nowrap items-center gap-5 text-base">
+              <ul className="flex flex-nowrap items-center gap-1.5 rounded-xl border border-[#DBEAFE] bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(241,245,249,0.9)_100%)] p-1.5 text-base shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_10px_24px_-20px_rgba(11,42,74,0.45)]">
                 {navLinks.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="block whitespace-nowrap rounded-md px-0 py-0 text-center font-semibold text-[#0F172A] transition-colors duration-200 hover:text-[#2563EB]"
+                      className="block whitespace-nowrap rounded-lg px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-[background-color,color,transform] duration-200 hover:-translate-y-px hover:bg-[#F8FAFC] hover:text-[#2563EB]"
                     >
                       {link.label}
                     </Link>
@@ -278,7 +290,7 @@ export default function EnrollPage() {
               <a
                 href={advisorTelHref}
                 aria-label={`Talk to advisor at ${advisorPhone}`}
-                className="inline-flex w-[9rem] items-center justify-center whitespace-nowrap rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md"
+                className="inline-flex w-[9rem] items-center justify-center whitespace-nowrap rounded-lg border border-[#1D4ED8]/70 bg-[linear-gradient(135deg,#2563EB_0%,#1D4ED8_55%,#1E40AF_100%)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_-16px_rgba(37,99,235,0.9)] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-105 hover:shadow-[0_20px_36px_-16px_rgba(37,99,235,0.92)]"
               >
                 Talk to Advisor
               </a>
@@ -289,7 +301,7 @@ export default function EnrollPage() {
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-nav-menu"
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#CBD5E1] bg-white text-[#0F172A] shadow-sm transition-colors duration-200 hover:bg-[#F1F5F9] sm:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#CBD5E1] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FAFC_100%)] text-[#0F172A] shadow-[0_10px_22px_-16px_rgba(11,42,74,0.55)] transition-colors duration-200 hover:bg-[#F1F5F9] sm:hidden"
             >
               <span className="sr-only">Menu</span>
               <span className="relative inline-flex h-4 w-5 flex-col justify-between">
@@ -310,6 +322,7 @@ export default function EnrollPage() {
                 />
               </span>
             </button>
+            </div>
           </div>
 
           <div
@@ -318,13 +331,14 @@ export default function EnrollPage() {
               isMobileMenuOpen ? "mt-3 max-h-80 opacity-100" : "max-h-0 opacity-0"
             }`}
           >
-            <ul className="grid grid-cols-2 gap-2 rounded-xl border border-[#E2E8F0] bg-white p-3">
+            <div className="rounded-2xl border border-[#DCE6F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FAFC_100%)] p-3 shadow-[0_20px_38px_-24px_rgba(11,42,74,0.48)]">
+            <ul className="grid grid-cols-2 gap-2">
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-colors duration-200 hover:text-[#2563EB]"
+                    className="block rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-[transform,color] duration-200 hover:-translate-y-px hover:text-[#2563EB]"
                   >
                     {link.label}
                   </Link>
@@ -335,154 +349,167 @@ export default function EnrollPage() {
               href={advisorTelHref}
               onClick={() => setIsMobileMenuOpen(false)}
               aria-label={`Talk to advisor at ${advisorPhone}`}
-              className="mt-3 inline-flex w-full items-center justify-center rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md"
+              className="mt-3 inline-flex w-full items-center justify-center rounded-lg border border-[#1D4ED8]/70 bg-[linear-gradient(135deg,#2563EB_0%,#1D4ED8_55%,#1E40AF_100%)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_14px_28px_-18px_rgba(37,99,235,0.88)] transition-[transform,box-shadow,filter] duration-200 hover:-translate-y-px hover:brightness-105 hover:shadow-[0_18px_34px_-18px_rgba(37,99,235,0.92)]"
             >
               Talk to Advisor
             </a>
+            </div>
           </div>
         </nav>
       </header>
 
-      <section className="border-b border-[#0b2a4a]/40 bg-[linear-gradient(135deg,#0B2A4A_0%,#1E3A8A_100%)]">
-        <div className="mx-auto grid w-full max-w-6xl gap-8 px-6 py-12 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-16">
-          <motion.div {...revealProps}>
-            <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">
-              Enroll in Playwright Mastery Academy
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-white/90 sm:text-lg">
-              A digital-first, career-focused automation program built for learners who want to
-              become AI-ready Playwright engineers with strong placement outcomes.
-            </p>
+      <section className="relative overflow-hidden border-b border-[#0b2a4a]/40 bg-[linear-gradient(135deg,#0B2A4A_0%,#1E3A8A_100%)]">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-20 top-4 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(147,197,253,0.24),transparent_68%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute right-0 top-0 h-72 w-72 bg-[radial-gradient(circle,rgba(255,255,255,0.14),transparent_72%)]"
+        />
+        <div className="mx-auto w-full max-w-6xl px-6 py-12 lg:px-8 lg:py-16">
+          <div className="rounded-2xl border border-white/20 bg-[linear-gradient(165deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-6 shadow-[0_24px_50px_-24px_rgba(11,42,74,0.82)] backdrop-blur-md sm:p-8">
+            <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+              <motion.div {...revealProps}>
+                <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl">
+                  Enroll in Playwright Mastery Academy
+                </h1>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-white/90 sm:text-lg">
+                  A digital-first, career-focused automation program built for learners who want to
+                  become AI-ready Playwright engineers with strong placement outcomes.
+                </p>
 
-            <ul className="mt-6 space-y-2">
-              {[
-                "Live coding sessions with mentor guidance",
-                "Framework from scratch with real project scenarios",
-                "Interview and profile optimization support",
-                "Practice labs for locators, network mocking, and table automation"
-              ].map((item) => (
-                <li key={item} className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white">
-                  {item}
-                </li>
-              ))}
-            </ul>
+                <ul className="mt-6 space-y-2">
+                  {[
+                    "Live coding sessions with mentor guidance",
+                    "Framework from scratch with real project scenarios",
+                    "Interview and profile optimization support",
+                    "Practice labs for locators, network mocking, and table automation"
+                  ].map((item) => (
+                    <li key={item} className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
 
-            {utmSummary ? (
-              <p className="mt-4 rounded-lg border border-[#93C5FD] bg-[#DBEAFE]/20 px-3 py-2 text-xs font-semibold text-[#DBEAFE]">
-                Tracking: {utmSummary}
-              </p>
-            ) : null}
+                {utmSummary ? (
+                  <p className="mt-4 rounded-lg border border-[#93C5FD] bg-[#DBEAFE]/20 px-3 py-2 text-xs font-semibold text-[#DBEAFE]">
+                    Tracking: {utmSummary}
+                  </p>
+                ) : null}
 
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link
-                href="/curriculum"
-                className="rounded-lg border border-white/60 bg-transparent px-5 py-3 text-sm font-semibold text-white transition-[transform,background-color,box-shadow] duration-200 hover:-translate-y-px hover:bg-white/[0.08] hover:shadow-md"
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <Link
+                    href="/curriculum"
+                    className="rounded-lg border border-white/60 bg-transparent px-5 py-3 text-sm font-semibold text-white transition-[transform,background-color,box-shadow] duration-200 hover:-translate-y-px hover:bg-white/[0.08] hover:shadow-md"
+                  >
+                    View Full Curriculum
+                  </Link>
+                </div>
+              </motion.div>
+
+              <motion.aside
+                {...withDelay(0.06)}
+                id="enroll-form"
+                className="rounded-2xl border border-white/20 bg-[linear-gradient(165deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-5 shadow-[0_24px_50px_-24px_rgba(11,42,74,0.82)] backdrop-blur-md sm:p-6"
               >
-                View Full Curriculum
-              </Link>
+                <h2 className="text-xl font-bold text-white sm:text-2xl">Get Free Counseling</h2>
+                <p className="mt-1 text-sm text-white/90">
+                  Share your details and our advisor will contact you with the right learning plan.
+                </p>
+
+                <form className="mt-4 space-y-3" onSubmit={submitLead} data-testid="enroll-lead-form">
+                  <label className="block text-sm font-semibold text-white">
+                    Full Name
+                    <input
+                      type="text"
+                      required
+                      value={form.fullName}
+                      onChange={(event) => updateForm("fullName", event.target.value)}
+                      className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
+                      placeholder="Enter your name"
+                    />
+                  </label>
+                  <label className="block text-sm font-semibold text-white">
+                    Email
+                    <input
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(event) => updateForm("email", event.target.value)}
+                      className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
+                      placeholder="Enter your email"
+                    />
+                  </label>
+                  <label className="block text-sm font-semibold text-white">
+                    Phone Number
+                    <input
+                      type="tel"
+                      required
+                      value={form.phone}
+                      onChange={(event) => updateForm("phone", event.target.value)}
+                      className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
+                      placeholder="Enter your phone number"
+                    />
+                  </label>
+                  <label className="block text-sm font-semibold text-white">
+                    Experience Level
+                    <select
+                      required
+                      value={form.experience}
+                      onChange={(event) => updateForm("experience", event.target.value)}
+                      className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
+                    >
+                      <option value="">Select experience</option>
+                      <option value="Fresher">Fresher</option>
+                      <option value="0-2 Years">0-2 Years</option>
+                      <option value="3-5 Years">3-5 Years</option>
+                      <option value="6+ Years">6+ Years</option>
+                    </select>
+                  </label>
+                  <label className="block text-sm font-semibold text-white">
+                    Current Role
+                    <input
+                      type="text"
+                      value={form.currentRole}
+                      onChange={(event) => updateForm("currentRole", event.target.value)}
+                      className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
+                      placeholder="Manual Tester / QA Engineer / Developer"
+                    />
+                  </label>
+                  <label className="block text-sm font-semibold text-white">
+                    Learning Goal
+                    <textarea
+                      rows={3}
+                      value={form.goal}
+                      onChange={(event) => updateForm("goal", event.target.value)}
+                      className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
+                      placeholder="What do you want to achieve in 3-6 months?"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    data-testid="enroll-submit-btn"
+                    disabled={isSubmitting}
+                    className="w-full rounded-lg bg-[#2563EB] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md"
+                  >
+                    {isSubmitting ? "Submitting..." : "Request Callback"}
+                  </button>
+                </form>
+
+                {submitted ? (
+                  <p className="mt-3 rounded-lg border border-[#93C5FD] bg-[#DBEAFE]/25 px-3 py-2 text-sm font-semibold text-white">
+                    Thanks! Our team will contact you shortly with enrollment details.
+                  </p>
+                ) : null}
+                {submitError ? (
+                  <p className="mt-3 rounded-lg border border-[#FECACA] bg-[#7F1D1D]/35 px-3 py-2 text-sm font-semibold text-white">
+                    {submitError}
+                  </p>
+                ) : null}
+              </motion.aside>
             </div>
-          </motion.div>
-
-          <motion.aside
-            {...withDelay(0.06)}
-            id="enroll-form"
-            className="rounded-xl border border-white/20 bg-white/10 p-5 shadow-[0_20px_45px_-25px_rgba(11,42,74,0.8)] backdrop-blur-sm sm:p-6"
-          >
-            <h2 className="text-xl font-bold text-white sm:text-2xl">Get Free Counseling</h2>
-            <p className="mt-1 text-sm text-white/90">
-              Share your details and our advisor will contact you with the right learning plan.
-            </p>
-
-            <form className="mt-4 space-y-3" onSubmit={submitLead} data-testid="enroll-lead-form">
-              <label className="block text-sm font-semibold text-white">
-                Full Name
-                <input
-                  type="text"
-                  required
-                  value={form.fullName}
-                  onChange={(event) => updateForm("fullName", event.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
-                  placeholder="Enter your name"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-white">
-                Email
-                <input
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(event) => updateForm("email", event.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
-                  placeholder="Enter your email"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-white">
-                Phone Number
-                <input
-                  type="tel"
-                  required
-                  value={form.phone}
-                  onChange={(event) => updateForm("phone", event.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
-                  placeholder="Enter your phone number"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-white">
-                Experience Level
-                <select
-                  required
-                  value={form.experience}
-                  onChange={(event) => updateForm("experience", event.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
-                >
-                  <option value="">Select experience</option>
-                  <option value="Fresher">Fresher</option>
-                  <option value="0-2 Years">0-2 Years</option>
-                  <option value="3-5 Years">3-5 Years</option>
-                  <option value="6+ Years">6+ Years</option>
-                </select>
-              </label>
-              <label className="block text-sm font-semibold text-white">
-                Current Role
-                <input
-                  type="text"
-                  value={form.currentRole}
-                  onChange={(event) => updateForm("currentRole", event.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
-                  placeholder="Manual Tester / QA Engineer / Developer"
-                />
-              </label>
-              <label className="block text-sm font-semibold text-white">
-                Learning Goal
-                <textarea
-                  rows={3}
-                  value={form.goal}
-                  onChange={(event) => updateForm("goal", event.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
-                  placeholder="What do you want to achieve in 3-6 months?"
-                />
-              </label>
-              <button
-                type="submit"
-                data-testid="enroll-submit-btn"
-                disabled={isSubmitting}
-                className="w-full rounded-lg bg-[#2563EB] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md"
-              >
-                {isSubmitting ? "Submitting..." : "Request Callback"}
-              </button>
-            </form>
-
-            {submitted ? (
-              <p className="mt-3 rounded-lg border border-[#93C5FD] bg-[#DBEAFE]/25 px-3 py-2 text-sm font-semibold text-white">
-                Thanks! Our team will contact you shortly with enrollment details.
-              </p>
-            ) : null}
-            {submitError ? (
-              <p className="mt-3 rounded-lg border border-[#FECACA] bg-[#7F1D1D]/35 px-3 py-2 text-sm font-semibold text-white">
-                {submitError}
-              </p>
-            ) : null}
-          </motion.aside>
+          </div>
         </div>
       </section>
 
