@@ -2432,9 +2432,7 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                   data-testid="extract-innertext-target"
                   className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-sm text-[#334155]"
                 >
-                  <p>InnerText line one</p>
-                  <p>InnerText line two</p>
-                  <span className="hidden">hidden line for comparison</span>
+                  InnerText target content
                 </div>
 
                 <input
