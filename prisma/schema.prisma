@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model EnrollLead {
+  id          String   @id
+  timestamp   DateTime @default(now())
+  fullName    String
+  email       String
+  phone       String
+  experience  String
+  currentRole String   @default("")
+  goal        String   @default("")
+  utmSummary  String   @default("")
+  sourcePage  String   @default("/enroll")
+  clientIp    String   @default("unknown")
+  userAgent   String   @default("unknown")
+  action      String   @default("request_callback")
+
+  @@index([timestamp])
+  @@map("enroll_leads")
+}

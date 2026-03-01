@@ -40,6 +40,19 @@ const initialStatus = {
 
 const formatJson = (value) => JSON.stringify(value, null, 2);
 
+const getValueType = (value) => {
+  if (Array.isArray(value)) return "array";
+  if (value === null) return "null";
+  return typeof value;
+};
+
+const formatMockValue = (value) => {
+  if (typeof value === "string") return `"${value}"`;
+  if (value === null) return "null";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+};
+
 function StatusLine({ label, value, testId, done = false }) {
   return (
     <div
@@ -353,7 +366,12 @@ await page.route('**/api/practice/network/flags', async (route) => {
     contentType: 'application/json',
     body: JSON.stringify({
       source: 'mocked-route',
-      flags: { betaDashboard: true, aiInsights: true, mcpAssist: true }
+      flags: {
+        betaDashboard: 'disabled',
+        aiInsights: true,
+        mcpAssist: 'pilot-mode',
+        smartRetries: false
+      }
     })
   });
 });
@@ -484,8 +502,14 @@ await Promise.all([
               >
                 {flagsData?.flags ? (
                   Object.entries(flagsData.flags).map(([key, value]) => (
-                    <li key={key} data-testid="net-flag-item">
-                      {key}: {value ? "true" : "false"}
+                    <li key={key} data-testid="net-flag-item" className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-[#0F172A]">{key}:</span>
+                      <code className="rounded bg-[#F8FAFC] px-1.5 py-0.5 text-xs text-[#334155]">
+                        {formatMockValue(value)}
+                      </code>
+                      <span className="rounded-full border border-[#DBEAFE] bg-[#EFF6FF] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#1D4ED8]">
+                        {getValueType(value)}
+                      </span>
                     </li>
                   ))
                 ) : (

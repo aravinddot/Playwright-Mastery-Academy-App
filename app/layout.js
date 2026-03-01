@@ -99,6 +99,9 @@ export default function RootLayout({ children }) {
                       <Link href="/enroll" className="transition-colors duration-200 hover:text-[#93C5FD]">
                         Enroll
                       </Link>
+                      <Link href="/admin" className="transition-colors duration-200 hover:text-[#93C5FD]">
+                        Admin
+                      </Link>
                     </nav>
 
                     <div className="flex items-center gap-2.5">

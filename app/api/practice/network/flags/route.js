@@ -7,10 +7,10 @@ export async function GET() {
       source: "live-api",
       delayMs,
       flags: {
-        betaDashboard: false,
+        betaDashboard: "disabled",
         aiInsights: true,
-        mcpAssist: false,
-        smartRetries: true
+        mcpAssist: "pilot-mode",
+        smartRetries: false
       },
       message: "Feature flags loaded from endpoint."
     },

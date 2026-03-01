@@ -8,11 +8,13 @@ A Next.js + Tailwind CSS web application for the Playwright Mastery Academy webs
 - React
 - Tailwind CSS
 - Framer Motion
+- Prisma + PostgreSQL
 
 ## Prerequisites
 
 - Node.js 18+ (recommended: Node.js 20 LTS)
 - npm
+- PostgreSQL database
 
 ## Clone and Run
 
@@ -29,14 +31,13 @@ Create a `.env.local` file in the project root.
 Example:
 
 ```env
-GOOGLE_SHEETS_WEBHOOK_URL=
-GOOGLE_SHEETS_WEBHOOK_TOKEN=
+DATABASE_URL=postgresql://postgres:password@localhost:5432/playwright_mastery_academy
 NEXT_PUBLIC_ADVISOR_PHONE=+919000000000
 ```
 
 Notes:
-- `GOOGLE_SHEETS_WEBHOOK_URL` and `GOOGLE_SHEETS_WEBHOOK_TOKEN` are needed for the enroll callback form integration.
-- `NEXT_PUBLIC_ADVISOR_PHONE` is used by the “Talk to Advisor” flow.
+- `DATABASE_URL` is required for enroll form lead storage and admin dashboard reporting.
+- `NEXT_PUBLIC_ADVISOR_PHONE` is used by the "Talk to Advisor" flow.
 
 ## Start Development Server
 

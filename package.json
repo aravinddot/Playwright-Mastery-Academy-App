@@ -9,8 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@prisma/client": "^6.18.0",
     "framer-motion": "^12.34.3",
     "next": "latest",
+    "prisma": "^6.18.0",
     "react": "latest",
     "react-dom": "latest"
   },

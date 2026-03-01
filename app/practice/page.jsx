@@ -2419,20 +2419,13 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                 <code>allInnerTexts</code>.
               </p>
 
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 grid gap-2">
                 <div
                   data-testid="extract-textcontent-target"
-                  className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-sm text-[#334155]"
+                  className="flex min-h-[42px] items-center rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-sm text-[#334155]"
                 >
                   TextContent target visible text
                   <span className="hidden"> hidden text for textContent check</span>
-                </div>
-
-                <div
-                  data-testid="extract-innertext-target"
-                  className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-sm text-[#334155]"
-                >
-                  InnerText target content
                 </div>
 
                 <input
@@ -2446,7 +2439,7 @@ await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
                   title="Extraction attribute target"
                   data-testid="extract-attribute-target"
                   data-track="advanced-playwright"
-                  className="rounded-md border border-[#BFDBFE] bg-white px-3 py-2 text-sm font-semibold text-[#1D4ED8]"
+                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8]"
                 >
                   Attribute Target
                 </button>
