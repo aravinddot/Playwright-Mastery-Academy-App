@@ -8,19 +8,29 @@ datasource db {
 }
 
 model EnrollLead {
-  id          String   @id
-  timestamp   DateTime @default(now())
-  fullName    String
-  email       String
-  phone       String
-  experience  String
-  currentRole String   @default("")
-  goal        String   @default("")
-  utmSummary  String   @default("")
-  sourcePage  String   @default("/enroll")
-  clientIp    String   @default("unknown")
-  userAgent   String   @default("unknown")
-  action      String   @default("request_callback")
+  id              String    @id
+  timestamp       DateTime  @default(now())
+  fullName        String
+  email           String
+  phone           String
+  experience      String
+  currentRole     String    @default("")
+  goal            String    @default("")
+  utmSummary      String    @default("")
+  sourcePage      String    @default("/enroll")
+  clientIp        String    @default("unknown")
+  userAgent       String    @default("unknown")
+  action          String    @default("request_callback")
+  leadSource      String    @default("Meta Ads")
+  campaignName    String    @default("")
+  callStatus      String    @default("Not Called")
+  interestStatus  String    @default("Not Assessed")
+  joinTimeline    String    @default("")
+  joinStatus      String    @default("Pending")
+  nextFollowUp    String    @default("")
+  callNotes       String    @default("")
+  lastContactedAt DateTime?
+  updatedAt       DateTime  @default(now())
 
   @@index([timestamp])
   @@map("enroll_leads")

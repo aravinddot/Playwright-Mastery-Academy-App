@@ -1,6 +1,11 @@
 import { getDatabaseStatus } from "../../../../lib/postgres-leads";
+import { isAdminAuthenticated } from "../../../../lib/admin-auth";
 
-export async function GET() {
+export async function GET(request) {
+  if (!isAdminAuthenticated(request)) {
+    return Response.json({ error: "Unauthorized. Admin login required." }, { status: 401 });
+  }
+
   try {
     const status = await getDatabaseStatus();
 

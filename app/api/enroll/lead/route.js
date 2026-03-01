@@ -1,6 +1,7 @@
 import { addLead } from "../../../../lib/postgres-leads";
 
 const requiredFields = ["fullName", "email", "phone", "experience"];
+const goalMaxLength = 220;
 
 function sanitize(value) {
   return String(value || "").trim();
@@ -33,6 +34,14 @@ export async function POST(request) {
   const forwardedFor = request.headers.get("x-forwarded-for") || "";
   const clientIp = forwardedFor.split(",")[0]?.trim() || "unknown";
   const userAgent = request.headers.get("user-agent") || "unknown";
+  const goal = sanitize(body.goal);
+
+  if (goal.length > goalMaxLength) {
+    return Response.json(
+      { error: `Learning goal must be ${goalMaxLength} characters or fewer.` },
+      { status: 400 }
+    );
+  }
 
   const leadRecord = {
     timestamp: new Date().toISOString(),
@@ -41,12 +50,21 @@ export async function POST(request) {
     phone: sanitize(body.phone),
     experience: sanitize(body.experience),
     currentRole: sanitize(body.currentRole),
-    goal: sanitize(body.goal),
+    goal,
     utmSummary: sanitize(body.utmSummary),
     sourcePage: "/enroll",
     clientIp,
     userAgent,
-    action: "request_callback"
+    action: "request_callback",
+    leadSource: "Meta Ads",
+    campaignName: sanitize(body.campaignName),
+    callStatus: "Not Called",
+    interestStatus: "Not Assessed",
+    joinTimeline: "",
+    joinStatus: "Pending",
+    nextFollowUp: "",
+    callNotes: "",
+    lastContactedAt: null
   };
 
   if (!isValidEmail(leadRecord.email)) {

@@ -1,6 +1,14 @@
 import { getAllLeads } from "../../../../lib/postgres-leads";
+import { isAdminAuthenticated } from "../../../../lib/admin-auth";
 
-export async function GET() {
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+export async function GET(request) {
+  if (!isAdminAuthenticated(request)) {
+    return Response.json({ error: "Unauthorized. Admin login required." }, { status: 401 });
+  }
+
   try {
     const rows = await getAllLeads();
 
@@ -11,7 +19,12 @@ export async function GET() {
         count: rows.length,
         rows
       },
-      { status: 200 }
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate"
+        }
+      }
     );
   } catch (error) {
     const message =

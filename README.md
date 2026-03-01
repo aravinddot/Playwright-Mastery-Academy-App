@@ -33,11 +33,16 @@ Example:
 ```env
 DATABASE_URL=postgresql://postgres:password@localhost:5432/playwright_mastery_academy
 NEXT_PUBLIC_ADVISOR_PHONE=+919000000000
+ADMIN_USERNAME=Aravind
+ADMIN_PASSWORD=Vidhuran@251021
+ADMIN_SESSION_SECRET=replace-with-strong-random-secret
 ```
 
 Notes:
 - `DATABASE_URL` is required for enroll form lead storage and admin dashboard reporting.
 - `NEXT_PUBLIC_ADVISOR_PHONE` is used by the "Talk to Advisor" flow.
+- `ADMIN_USERNAME` and `ADMIN_PASSWORD` control admin login credentials.
+- `ADMIN_SESSION_SECRET` signs the admin auth cookie.
 
 ## Start Development Server
 

@@ -118,6 +118,7 @@ const testimonialVideoCards = [
 ];
 
 const initialCountdownSeconds = 10 * 60;
+const goalMaxLength = 220;
 
 const sectionClass =
   "relative overflow-hidden rounded-2xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F9FBFF_100%)] p-6 shadow-[0_22px_48px_-30px_rgba(11,42,74,0.45)] sm:p-8";
@@ -205,7 +206,12 @@ export default function EnrollPage() {
   ).padStart(2, "0")}`;
 
   const updateForm = (key, value) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    const nextValue = key === "goal" ? String(value || "").slice(0, goalMaxLength) : value;
+    setForm((prev) => ({ ...prev, [key]: nextValue }));
+  };
+
+  const updateGoalValue = (value) => {
+    setForm((prev) => ({ ...prev, goal: String(value || "").slice(0, goalMaxLength) }));
   };
 
   const submitLead = async (event) => {
@@ -482,10 +488,29 @@ export default function EnrollPage() {
                     <textarea
                       rows={3}
                       value={form.goal}
-                      onChange={(event) => updateForm("goal", event.target.value)}
+                      onChange={(event) => updateGoalValue(event.target.value)}
+                      onInput={(event) => {
+                        if (event.currentTarget.value.length > goalMaxLength) {
+                          event.currentTarget.value = event.currentTarget.value.slice(0, goalMaxLength);
+                        }
+                        updateGoalValue(event.currentTarget.value);
+                      }}
+                      onPaste={(event) => {
+                        const pastedText = event.clipboardData.getData("text");
+                        const allowed = Math.max(goalMaxLength - form.goal.length, 0);
+                        if (pastedText.length > allowed) {
+                          event.preventDefault();
+                          const nextValue = `${form.goal}${pastedText.slice(0, allowed)}`;
+                          updateGoalValue(nextValue);
+                        }
+                      }}
+                      maxLength={goalMaxLength}
                       className="mt-1.5 w-full rounded-lg border border-white/40 bg-white/95 px-3 py-2 text-sm text-[#0F172A] outline-none ring-0"
                       placeholder="What do you want to achieve in 3-6 months?"
                     />
+                    <p className="mt-1 text-right text-[11px] font-medium text-white/80">
+                      {form.goal.length}/{goalMaxLength}
+                    </p>
                   </label>
                   <button
                     type="submit"
