@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -476,6 +476,26 @@ function TestimonialCard({ item, delay = 0 }) {
 
 export default function TestimonialsPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [testimonialPage, setTestimonialPage] = useState(1);
+  const cardsPerPage = 3;
+
+  const totalTestimonialPages = Math.max(1, Math.ceil(testimonials.length / cardsPerPage));
+
+  const visibleTestimonials = useMemo(() => {
+    const start = (testimonialPage - 1) * cardsPerPage;
+    return testimonials.slice(start, start + cardsPerPage);
+  }, [testimonialPage, cardsPerPage]);
+
+  const visibleStart = (testimonialPage - 1) * cardsPerPage + 1;
+  const visibleEnd = Math.min(testimonialPage * cardsPerPage, testimonials.length);
+
+  const visiblePageNumbers = useMemo(() => {
+    const start = Math.max(1, testimonialPage - 2);
+    const end = Math.min(totalTestimonialPages, testimonialPage + 2);
+    const pages = [];
+    for (let page = start; page <= end; page += 1) pages.push(page);
+    return pages;
+  }, [testimonialPage, totalTestimonialPages]);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_12%_9%,rgba(37,99,235,0.12),transparent_34%),radial-gradient(circle_at_88%_20%,rgba(59,130,246,0.1),transparent_32%),radial-gradient(circle_at_50%_96%,rgba(191,219,254,0.32),transparent_36%),#F8FAFC] text-[#0F172A]">
@@ -656,9 +676,68 @@ export default function TestimonialsPage() {
           className="rounded-2xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F9FBFF_100%)] p-6 shadow-[0_22px_46px_-30px_rgba(11,42,74,0.45)] sm:p-8"
         >
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {testimonials.map((item, index) => (
+            {visibleTestimonials.map((item, index) => (
               <TestimonialCard key={item.photo || item.name} item={item} delay={index * 0.08} />
             ))}
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-[#334155]">
+              Showing {visibleStart} to {visibleEnd} of {testimonials.length} testimonials
+            </p>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setTestimonialPage(1)}
+                disabled={testimonialPage === 1}
+                className="rounded-lg border border-[#BFDBFE] bg-white px-3 py-1.5 text-xs font-semibold text-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                First
+              </button>
+              <button
+                type="button"
+                onClick={() => setTestimonialPage((prev) => Math.max(1, prev - 1))}
+                disabled={testimonialPage === 1}
+                className="rounded-lg border border-[#BFDBFE] bg-white px-3 py-1.5 text-xs font-semibold text-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                Prev
+              </button>
+
+              {visiblePageNumbers.map((pageNo) => (
+                <button
+                  key={pageNo}
+                  type="button"
+                  onClick={() => setTestimonialPage(pageNo)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                    pageNo === testimonialPage
+                      ? "bg-[#2563EB] text-white"
+                      : "border border-[#BFDBFE] bg-white text-[#1D4ED8]"
+                  }`}
+                >
+                  {pageNo}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() =>
+                  setTestimonialPage((prev) => Math.min(totalTestimonialPages, prev + 1))
+                }
+                disabled={testimonialPage === totalTestimonialPages}
+                className="rounded-lg border border-[#BFDBFE] bg-white px-3 py-1.5 text-xs font-semibold text-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                Next
+              </button>
+              <button
+                type="button"
+                onClick={() => setTestimonialPage(totalTestimonialPages)}
+                disabled={testimonialPage === totalTestimonialPages}
+                className="rounded-lg border border-[#BFDBFE] bg-white px-3 py-1.5 text-xs font-semibold text-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                Last
+              </button>
+            </div>
           </div>
         </motion.section>
       </main>

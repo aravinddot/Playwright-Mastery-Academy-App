@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { clearPracticeProgress, readPracticeProgress } from "../../lib/practiceProgress";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -431,38 +432,41 @@ const elementScenarios = [
   {
     id: "sandbox-click-hover",
     source: "Interactive Playwright Sandbox",
-    title: "Click, Double Click, Hover",
-    target: "single-click-btn, double-click-btn, hover-btn, single-click-status, double-click-status, hover-status",
+    title: "Click, Double Click, Hover, Tooltip, Static Dropdown",
+    target:
+      "single-click-btn, double-click-btn, hover-btn, tooltip-trigger-btn, static-practice-select, single-click-status, double-click-status, hover-status, hover-tooltip-status, static-dropdown-status",
     steps: [
       "Click and double-click corresponding targets.",
-      "Hover on hover target element.",
-      "Assert all three result cards show Completed state."
+      "Hover on hover target element and verify tooltip trigger.",
+      "Select static dropdown option and assert related status cards."
     ],
-    assertion: "Single/Double/Hover statuses should change from pending to completed."
+    assertion:
+      "Single/Double/Hover/Tooltip/Static dropdown statuses should change from pending to completed."
   },
   {
     id: "sandbox-form-controls",
     source: "Interactive Playwright Sandbox",
-    title: "Form Controls and Keyboard",
-    target: "name-input, email-input, track-select, remember-checkbox, mode-ui-radio, mode-api-radio, keyboard-input, keyboard-status",
+    title: "Form Controls",
+    target: "name-input, email-input, track-select, remember-checkbox, mode-ui-radio, mode-api-radio, form-status",
     steps: [
       "Fill form fields and toggle checkbox/radio controls.",
-      "Submit form and verify form-status card.",
-      "Type command in keyboard input and press Enter to verify keyboard-status."
+      "Submit form and verify form-status card."
     ],
-    assertion: "Form and keyboard result cards should show Completed state."
+    assertion: "Form result card should show Completed state."
   },
   {
     id: "sandbox-wait-commands",
     source: "Interactive Playwright Sandbox",
-    title: "Wait Commands (Navigation/Response/URL/LoadState/Selector)",
-    target: "wait-navigation-link, wait-response-btn, wait-url-btn, wait-loadstate-link, wait-locator-target, wait-selector-target, waitops-status",
+    title: "Wait Commands + Keyboard + Dynamic Dropdown",
+    target:
+      "wait-navigation-link, wait-response-btn, wait-url-btn, wait-loadstate-link, wait-locator-target, wait-selector-target, keyboard-input, keyboard-status, dynamic-group-select, dynamic-option-select, dynamic-dropdown-status, waitops-status",
     steps: [
       "Use waitForNavigation for Navigation Link and waitForResponse for API trigger.",
       "Use waitForURL and waitForLoadState on URL and reload actions.",
-      "Use locator.waitFor and waitForSelector on delayed reveal targets."
+      "Use locator.waitFor and waitForSelector on delayed reveal targets.",
+      "Type command and press Enter, then select dynamic dropdown group and option."
     ],
-    assertion: "Wait Ops status should move from in-progress to completed."
+    assertion: "Wait Ops, Keyboard, and Dynamic Dropdown statuses should move to completed."
   },
   {
     id: "sandbox-drag-upload-download",
@@ -491,14 +495,16 @@ const elementScenarios = [
   {
     id: "sandbox-table-readops",
     source: "Interactive Playwright Sandbox",
-    title: "Table Actions + Text/Attribute Extraction",
-    target: "learner-table, select-usr-01, table-status, extract-textcontent-target, extract-innertext-target, extract-inputvalue-target, extract-attribute-target, extract-list-item, readops-status",
+    title: "Hidden/Bootstrap Dropdown + Text/Attribute Extraction",
+    target:
+      "hidden-dropdown-toggle-btn, hidden-dropdown-select, bootstrap-dropdown-trigger, bootstrap-dropdown-menu, bootstrap-dropdown-item-weekday, table-status, extract-textcontent-target, extract-inputvalue-target, extract-attribute-target, extract-list-item, readops-status",
     steps: [
-      "Select learner row action and validate table-status result.",
-      "Run textContent/innerText/inputValue/getAttribute extraction commands.",
+      "Reveal hidden dropdown, select an option, and validate dropdown-status result.",
+      "Open bootstrap dropdown menu and select batch option.",
+      "Run textContent/inputValue/getAttribute extraction commands.",
       "Collect allTextContents/allInnerTexts from repeated list items and mark read ops complete."
     ],
-    assertion: "Table and Read Ops statuses should both show Completed state."
+    assertion: "Dropdown and Read Ops statuses should both show Completed state."
   },
   {
     id: "sandbox-iframe-shadow",
@@ -536,12 +542,6 @@ const elementScenarios = [
     ],
     assertion: "Table lab should support reliable filtering and pagination across large data sets."
   }
-];
-
-const practiceUsers = [
-  { id: "usr-01", name: "Arjun", role: "QA Engineer", status: "Active" },
-  { id: "usr-02", name: "Keerthi", role: "SDET", status: "Active" },
-  { id: "usr-03", name: "Vimal", role: "Automation Tester", status: "Pending" }
 ];
 
 const iframeDoc = `<!doctype html>
@@ -617,6 +617,8 @@ const initialSandboxStatus = {
   hover: "Hover target not triggered.",
   hoverTooltip: "Tooltip not verified.",
   form: "Form not submitted.",
+  staticDropdown: "Static dropdown not selected.",
+  dynamicDropdown: "Dynamic dropdown not selected.",
   keyboard: "Press Enter in the command input.",
   async: "Async action not started.",
   drop: "Drop target is waiting.",
@@ -625,7 +627,7 @@ const initialSandboxStatus = {
   readOps: "Read operation checks not executed.",
   waitCmd: "Wait command checks not started.",
   dialog: "No dialog interaction yet.",
-  table: "No learner selected."
+  table: "No dropdown action executed."
 };
 
 const supportedUploadExtensions = [".pdf", ".csv", ".xml", ".txt"];
@@ -692,11 +694,84 @@ const practiceMoodTips = [
   "After each completed action, assert the status card so your flow stays deterministic."
 ];
 
-const quickJumpLinks = [
-  { label: "Locator Arena", href: "#locator-practice" },
-  { label: "Interactive Sandbox", href: "#interactive-playground" },
-  { label: "Test Scenarios", href: "#scenario-list" }
+const staticDropdownOptions = [
+  { value: "", label: "Select practice level" },
+  { value: "Easy", label: "Easy - Basic locator targeting" },
+  { value: "Medium", label: "Medium - Filter and chaining" },
+  { value: "Hard", label: "Hard - Dynamic waits and assertions" }
 ];
+
+const dynamicDropdownOptions = {
+  Locators: [
+    { value: "role", label: "getByRole + name" },
+    { value: "text", label: "getByText + exact" },
+    { value: "testid", label: "getByTestId + filter" }
+  ],
+  Actions: [
+    { value: "click", label: "click and dblclick flow" },
+    { value: "form", label: "fill + radio + checkbox" },
+    { value: "dragdrop", label: "drag and drop verification" }
+  ],
+  Waits: [
+    { value: "navigation", label: "waitForNavigation + URL" },
+    { value: "response", label: "waitForResponse + route" },
+    { value: "selector", label: "waitForSelector and locator.waitFor" }
+  ]
+};
+
+const practiceModuleCards = [
+  {
+    title: "Locator Practice Arena",
+    href: "/practice/locator-arena",
+    description: "Practice robust selectors from easy to hard with filter and chaining drills.",
+    badge: "Locators",
+    cardClass:
+      "border-[#D7E6FF] bg-[linear-gradient(155deg,#FFFFFF_0%,#F3F8FF_100%)] hover:border-[#93C5FD] hover:shadow-[0_20px_40px_-30px_rgba(37,99,235,0.45)]"
+  },
+  {
+    title: "Sandbox Basic",
+    href: "/practice/sandbox-basic",
+    description: "Master clicks, form controls, dynamic waits, keyboard actions, and extraction basics.",
+    badge: "Core UI",
+    cardClass:
+      "border-[#D6EAFE] bg-[linear-gradient(155deg,#FFFFFF_0%,#F0F9FF_100%)] hover:border-[#93C5FD] hover:shadow-[0_20px_40px_-30px_rgba(14,116,144,0.4)]"
+  },
+  {
+    title: "Sandbox Advanced",
+    href: "/practice/sandbox-advanced",
+    description: "Train on dropdown patterns, dialogs, uploads, iFrame, Shadow DOM, and wait commands.",
+    badge: "Advanced UI",
+    cardClass:
+      "border-[#DDE4FF] bg-[linear-gradient(155deg,#FFFFFF_0%,#EEF2FF_100%)] hover:border-[#A5B4FC] hover:shadow-[0_20px_40px_-30px_rgba(79,70,229,0.4)]"
+  },
+  {
+    title: "Network Interception Lab",
+    href: "/practice/network-mocking",
+    description: "Practice route.continue, route.fulfill, and abort workflows with live endpoint controls.",
+    badge: "Network",
+    testId: "network-mocking-link",
+    cardClass:
+      "border-[#D7E6FF] bg-[linear-gradient(155deg,#FFFFFF_0%,#EFF6FF_100%)] hover:border-[#93C5FD] hover:shadow-[0_20px_40px_-30px_rgba(37,99,235,0.45)]"
+  },
+  {
+    title: "Tables & Filtering Lab",
+    href: "/practice/table-pagination",
+    description: "Validate high-volume rows, multi-filter flows, sorting logic, and stable pagination.",
+    badge: "Data Grid",
+    testId: "table-pagination-link",
+    cardClass:
+      "border-[#D7E6FF] bg-[linear-gradient(155deg,#FFFFFF_0%,#EFF6FF_100%)] hover:border-[#93C5FD] hover:shadow-[0_20px_40px_-30px_rgba(37,99,235,0.45)]"
+  }
+];
+
+const practiceModulePaths = practiceModuleCards.map((module) => module.href);
+const moduleTaskPlan = {
+  "/practice/locator-arena": 4,
+  "/practice/sandbox-basic": 9,
+  "/practice/sandbox-advanced": 7,
+  "/practice/network-mocking": 4,
+  "/practice/table-pagination": 3
+};
 
 const revealProps = {
   initial: { opacity: 0.92, y: 10 },
@@ -806,9 +881,20 @@ export default function PracticePage() {
   const [hoverTooltipStatus, setHoverTooltipStatus] = useState(initialSandboxStatus.hoverTooltip);
   const [isHoverTooltipVisible, setIsHoverTooltipVisible] = useState(false);
   const [formStatus, setFormStatus] = useState(initialSandboxStatus.form);
+  const [staticDropdownValue, setStaticDropdownValue] = useState("");
+  const [dynamicGroupValue, setDynamicGroupValue] = useState("");
+  const [dynamicOptionValue, setDynamicOptionValue] = useState("");
+  const [staticDropdownStatus, setStaticDropdownStatus] = useState(initialSandboxStatus.staticDropdown);
+  const [dynamicDropdownStatus, setDynamicDropdownStatus] = useState(initialSandboxStatus.dynamicDropdown);
   const [rememberChoice, setRememberChoice] = useState(false);
   const [learningMode, setLearningMode] = useState("ui");
-  const [practiceForm, setPracticeForm] = useState({ name: "", email: "", track: "" });
+  const [practiceForm, setPracticeForm] = useState({
+    name: "",
+    email: "",
+    track: "",
+    practiceDate: "",
+    interviewDate: ""
+  });
   const [keyboardValue, setKeyboardValue] = useState("");
   const [keyboardStatus, setKeyboardStatus] = useState(initialSandboxStatus.keyboard);
   const [isAsyncLoading, setIsAsyncLoading] = useState(false);
@@ -822,10 +908,15 @@ export default function PracticePage() {
   const [selectorWaitVisible, setSelectorWaitVisible] = useState(false);
   const [dialogStatus, setDialogStatus] = useState(initialSandboxStatus.dialog);
   const [tableStatus, setTableStatus] = useState(initialSandboxStatus.table);
+  const [isHiddenDropdownVisible, setIsHiddenDropdownVisible] = useState(false);
+  const [hiddenDropdownValue, setHiddenDropdownValue] = useState("");
+  const [isBootstrapDropdownOpen, setIsBootstrapDropdownOpen] = useState(false);
+  const [bootstrapDropdownValue, setBootstrapDropdownValue] = useState("");
   const [locatorChainStatus, setLocatorChainStatus] = useState("No filter/chaining action executed.");
   const [showLocatorAnswers, setShowLocatorAnswers] = useState(false);
   const [showSandboxAnswers, setShowSandboxAnswers] = useState(false);
   const [tipIndex, setTipIndex] = useState(0);
+  const [moduleProgressMap, setModuleProgressMap] = useState({});
   const [openScenarioId, setOpenScenarioId] = useState(elementScenarios[0]?.id ?? "");
   const asyncTimerRef = useRef(null);
   const locatorWaitTimerRef = useRef(null);
@@ -927,8 +1018,72 @@ export default function PracticePage() {
     return () => clearInterval(intervalId);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setModuleProgressMap(readPracticeProgress());
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const syncProgress = () => setModuleProgressMap(readPracticeProgress());
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") syncProgress();
+    };
+
+    window.addEventListener("focus", syncProgress);
+    window.addEventListener("storage", syncProgress);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", syncProgress);
+      window.removeEventListener("storage", syncProgress);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  const resetModuleProgress = () => {
+    setModuleProgressMap({});
+    clearPracticeProgress();
+  };
+
   const updateForm = (key, value) => {
     setPracticeForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleStaticDropdownChange = (value) => {
+    setStaticDropdownValue(value);
+    setStaticDropdownStatus(value ? `Static dropdown selected: ${value}.` : initialSandboxStatus.staticDropdown);
+  };
+
+  const handleDynamicGroupChange = (value) => {
+    setDynamicGroupValue(value);
+    setDynamicOptionValue("");
+    setDynamicDropdownStatus(
+      value ? `Dynamic group selected: ${value}. Choose a dependent option.` : initialSandboxStatus.dynamicDropdown
+    );
+  };
+
+  const handleDynamicOptionChange = (value) => {
+    setDynamicOptionValue(value);
+    if (!value || !dynamicGroupValue) {
+      setDynamicDropdownStatus(initialSandboxStatus.dynamicDropdown);
+      return;
+    }
+    const optionLabel =
+      dynamicDropdownOptions[dynamicGroupValue]?.find((item) => item.value === value)?.label || value;
+    setDynamicDropdownStatus(`Dynamic dropdown selected: ${optionLabel}.`);
+  };
+
+  const handleHiddenDropdownChange = (value) => {
+    setHiddenDropdownValue(value);
+    setTableStatus(value ? `Hidden dropdown selected: ${value}.` : initialSandboxStatus.table);
+  };
+
+  const handleBootstrapDropdownSelect = (value) => {
+    setBootstrapDropdownValue(value);
+    setIsBootstrapDropdownOpen(false);
+    setTableStatus(`Bootstrap dropdown selected: ${value}.`);
   };
 
   const submitPracticeForm = (event) => {
@@ -948,7 +1103,7 @@ export default function PracticePage() {
       setIsAsyncLoading(false);
       setAsyncStatus("Async result loaded successfully.");
       asyncTimerRef.current = null;
-    }, 1300);
+    }, 20000);
   };
 
   const handleDragStart = (event) => {
@@ -1122,51 +1277,63 @@ export default function PracticePage() {
     });
   }, [query, selectedCategory, selectedLevel]);
 
-  const completedCheckpointCount = useMemo(() => {
-    const checks = [
-      singleClickStatus !== initialSandboxStatus.singleClick,
-      doubleClickStatus !== initialSandboxStatus.doubleClick,
-      hoverStatus !== initialSandboxStatus.hover,
-      formStatus !== initialSandboxStatus.form,
-      keyboardStatus !== initialSandboxStatus.keyboard,
-      asyncStatus !== initialSandboxStatus.async,
-      dropStatus !== initialSandboxStatus.drop,
-      uploadedFileName !== initialSandboxStatus.upload,
-      downloadStatus !== initialSandboxStatus.download,
-      readOpsStatus !== initialSandboxStatus.readOps,
-      waitOpsStatus !== initialSandboxStatus.waitCmd,
-      dialogStatus !== initialSandboxStatus.dialog,
-      tableStatus !== initialSandboxStatus.table,
-      locatorChainStatus !== "No filter/chaining action executed."
-    ];
+  const normalizedModuleProgress = useMemo(
+    () =>
+      practiceModulePaths.reduce((acc, path) => {
+        const stored = moduleProgressMap[path] || {};
+        const totalTasks = moduleTaskPlan[path] || 1;
+        const completedTasks = Math.max(
+          0,
+          Math.min(totalTasks, Number(stored.completedTasks) || 0)
+        );
+        const percent = Math.round((completedTasks / totalTasks) * 100);
 
-    return checks.filter(Boolean).length;
-  }, [
-    asyncStatus,
-    dialogStatus,
-    doubleClickStatus,
-    downloadStatus,
-    dropStatus,
-    formStatus,
-    hoverStatus,
-    keyboardStatus,
-    locatorChainStatus,
-    readOpsStatus,
-    singleClickStatus,
-    tableStatus,
-    uploadedFileName,
-    waitOpsStatus
-  ]);
+        acc[path] = {
+          totalTasks,
+          completedTasks,
+          percent
+        };
 
-  const totalCheckpointCount = 14;
-  const sessionProgress = Math.round((completedCheckpointCount / totalCheckpointCount) * 100);
+        return acc;
+      }, {}),
+    [moduleProgressMap]
+  );
+
+  const completedCheckpointCount = useMemo(
+    () =>
+      Object.values(normalizedModuleProgress).filter((module) => module.percent === 100).length,
+    [normalizedModuleProgress]
+  );
+
+  const totalCheckpointCount = practiceModulePaths.length;
+  const totalTaskCount = useMemo(
+    () =>
+      Object.values(normalizedModuleProgress).reduce(
+        (sum, module) => sum + module.totalTasks,
+        0
+      ),
+    [normalizedModuleProgress]
+  );
+  const completedTaskCount = useMemo(
+    () =>
+      Object.values(normalizedModuleProgress).reduce(
+        (sum, module) => sum + module.completedTasks,
+        0
+      ),
+    [normalizedModuleProgress]
+  );
+
+  const sessionProgress =
+    totalTaskCount > 0 ? Math.round((completedTaskCount / totalTaskCount) * 100) : 0;
 
   const activeChallengeLabel =
-    sessionProgress >= 85
-      ? "Expert Mode"
-      : sessionProgress >= 50
+    sessionProgress === 100
+      ? "Mission Complete"
+      : sessionProgress >= 60
         ? "Momentum Mode"
-        : "Warm-up Mode";
+        : sessionProgress > 0
+          ? "Warm-up Mode"
+          : "Not Started";
 
   const copySnippet = async (item) => {
     const text = `${item.fn}\n${item.syntax}\nPractice: ${item.exercise}\nVerify: ${item.verify}`;
@@ -1314,36 +1481,62 @@ export default function PracticePage() {
         />
         <div className="mx-auto w-full max-w-6xl px-6 py-12 lg:px-8 lg:py-14">
           <div className="rounded-2xl border border-white/20 bg-[linear-gradient(165deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-6 shadow-[0_24px_50px_-24px_rgba(11,42,74,0.82)] backdrop-blur-md sm:p-8">
-            <motion.h1 {...revealProps} className="text-4xl font-black tracking-tight text-white sm:text-5xl">
-              Playwright Practice Lab
-            </motion.h1>
-            <motion.p
-              {...revealProps}
-              transition={{ ...revealProps.transition, delay: 0.05 }}
-              className="mt-4 max-w-4xl text-base leading-7 text-white/90 sm:text-lg"
-            >
-              Practice Playwright end-to-end with locator drills, interactive sandbox targets,
-              network interception and mocking labs, and large-table pagination with filters.
-            </motion.p>
+            <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+              <div>
+                <motion.h1 {...revealProps} className="text-4xl font-black tracking-tight text-white sm:text-5xl">
+                  Playwright Practice Lab
+                </motion.h1>
+                <motion.p
+                  {...revealProps}
+                  transition={{ ...revealProps.transition, delay: 0.05 }}
+                  className="mt-4 max-w-4xl text-base leading-7 text-white/90 sm:text-lg"
+                >
+                  Practice Playwright end-to-end with dedicated locator drills, sandbox workflows,
+                  network interception, and high-volume table filtering labs.
+                </motion.p>
 
-            <motion.div
-              {...revealProps}
-              transition={{ ...revealProps.transition, delay: 0.1 }}
-              className="mt-6 flex flex-wrap gap-3"
-            >
-              <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
-                Core Function Drills + Dedicated Labs
-              </span>
-              <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
-                Locator + Sandbox + Wait Labs
-              </span>
-              <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
-                Network Interception + Mocking Lab
-              </span>
-              <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
-                3200-Row Table Pagination + Filters
-              </span>
-            </motion.div>
+                <motion.div
+                  {...revealProps}
+                  transition={{ ...revealProps.transition, delay: 0.1 }}
+                  className="mt-6 flex flex-wrap gap-3"
+                >
+                  <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
+                    Core Function Drills
+                  </span>
+                  <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
+                    Basic + Advanced Sandbox
+                  </span>
+                  <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
+                    Network + Table Labs
+                  </span>
+                </motion.div>
+
+              </div>
+
+              <motion.aside
+                {...revealProps}
+                transition={{ ...revealProps.transition, delay: 0.08 }}
+                className="rounded-2xl border border-white/25 bg-[linear-gradient(170deg,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.08)_100%)] p-5 shadow-[0_18px_36px_-24px_rgba(11,42,74,0.72)]"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#DBEAFE]">
+                  Practice Tracks
+                </p>
+                <div className="mt-4 space-y-3">
+                  <div className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white">
+                    Locator Fundamentals
+                  </div>
+                  <div className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white">
+                    Interactive Sandbox Flows
+                  </div>
+                  <div className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white">
+                    Network + Data Grid Challenges
+                  </div>
+                </div>
+                <p className="mt-4 text-xs leading-5 text-white/85">
+                  Recommended path: Locator Arena -&gt; Sandbox Basic -&gt; Sandbox Advanced -&gt; Network -&gt; Tables.
+                </p>
+              </motion.aside>
+            </div>
           </div>
         </div>
       </section>
@@ -1361,7 +1554,7 @@ export default function PracticePage() {
                 </span>
               </div>
               <p className="mt-3 text-sm text-white/85">
-                Complete interactive checkpoints to level up automation confidence without burnout.
+                Complete dedicated modules to build steady automation confidence without burnout.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <span className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-[#DBEAFE]">
@@ -1374,7 +1567,7 @@ export default function PracticePage() {
               <div className="mt-4">
                 <div className="mb-2 flex items-center justify-between text-xs font-semibold text-[#DBEAFE]">
                   <span>
-                    Progress: {completedCheckpointCount}/{totalCheckpointCount} checkpoints
+                    Progress: {completedTaskCount}/{totalTaskCount} tasks
                   </span>
                   <span>{sessionProgress}%</span>
                 </div>
@@ -1394,1365 +1587,81 @@ export default function PracticePage() {
 
             <article className="rounded-xl border border-[#D9E6FF] bg-white p-5 shadow-[0_16px_30px_-24px_rgba(11,42,74,0.36)]">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">
-                Quick Jump
+                Module Progress
               </p>
               <p className="mt-2 text-sm text-[#475569]">
-                Move between modules quickly and keep the session energetic.
+                Quick Jump navigation is not required here. Use module cards below and track completion here.
               </p>
               <div className="mt-4 grid gap-2">
-                {quickJumpLinks.map((item) => (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    className="inline-flex items-center justify-between rounded-lg border border-[#DBEAFE] bg-[#F8FAFC] px-3 py-2 text-sm font-semibold text-[#1D4ED8] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-[#93C5FD] hover:shadow-sm"
+                {practiceModuleCards.map((module) => (
+                  <div
+                    key={module.href}
+                    className="inline-flex items-center justify-between rounded-lg border border-[#DBEAFE] bg-[linear-gradient(180deg,#FFFFFF_0%,#F8FAFC_100%)] px-3 py-2 text-sm"
                   >
-                    <span>{item.label}</span>
-                    <span aria-hidden="true" className="text-base leading-none">
-                      +
+                    <span className="font-semibold text-[#0F172A]">{module.title}</span>
+                    <span
+                      className={`rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
+                        normalizedModuleProgress[module.href]?.percent === 100
+                          ? "border-[#93C5FD] bg-[#EFF6FF] text-[#1D4ED8]"
+                          : "border-[#E2E8F0] bg-white text-[#64748B]"
+                      }`}
+                    >
+                      {normalizedModuleProgress[module.href]?.completedTasks}/
+                      {normalizedModuleProgress[module.href]?.totalTasks} tasks
                     </span>
-                  </a>
+                  </div>
                 ))}
+              </div>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={resetModuleProgress}
+                  className="inline-flex items-center rounded-lg border border-[#BFDBFE] bg-[linear-gradient(180deg,#FFFFFF_0%,#EFF6FF_100%)] px-3 py-2 text-xs font-semibold text-[#1D4ED8] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-[#93C5FD] hover:shadow-sm"
+                >
+                  Reset Module Progress
+                </button>
               </div>
             </article>
           </div>
         </motion.section>
 
-        <motion.section id="locator-practice" {...revealProps} className={sectionClass}>
+                <motion.section id="practice-modules" {...revealProps} className={sectionClass}>
           <div className="mb-6">
             <h2 className="text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
-              Locator Practice Arena
+              Dedicated Practice Modules
             </h2>
             <p className="mt-2 text-sm leading-6 text-[#64748B] sm:text-base">
-              18 practice targets grouped by difficulty so students can use all locator types:
-              <span className="font-semibold text-[#0F172A]">
-                {" "}
-                locator, getByText, getByRole, getByLabel, getByPlaceholder, getByAltText,
-                getByTitle, and getByTestId.
-              </span>
+              Open each practice module in its own page for focused learning and cleaner navigation.
             </p>
           </div>
 
-          <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-[#0F172A]">
-                Quick Locator Mapping (Answer Key)
-              </p>
-              <button
-                type="button"
-                data-testid="toggle-locator-answers"
-                aria-expanded={showLocatorAnswers}
-                aria-controls="quick-locator-answers"
-                onClick={() => setShowLocatorAnswers((prev) => !prev)}
-                className="rounded-lg border border-[#BFDBFE] bg-white px-3 py-2 text-xs font-semibold text-[#1D4ED8] transition-colors duration-200 hover:bg-[#EFF6FF]"
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {practiceModuleCards.map((module) => (
+              <Link
+                key={module.href}
+                href={module.href}
+                data-testid={module.testId}
+                className={`group rounded-2xl border p-4 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-1 ${module.cardClass}`}
               >
-                {showLocatorAnswers ? "Hide Locator Answers" : "Show Locator Answers"}
-              </button>
-            </div>
-
-            {showLocatorAnswers ? (
-              <div
-                id="quick-locator-answers"
-                className="mt-3 rounded-xl border border-[#1E3A8A] bg-[#0F172A] p-4"
-              >
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#93C5FD]">
-                  Answers For All Locators
-                </p>
-                <pre className="mt-2 overflow-x-auto text-xs leading-6 text-[#E2E8F0]">
-                  <code>{`// EASY (6/6)
-await page.getByTestId('easy-btn-start').click();
-await page.getByText('Read Locator Guide').click();
-await page.getByLabel('Learner Name').fill('Arun Kumar');
-await page.getByPlaceholder('Search by batch').fill('Batch 2026');
-await expect(page.getByAltText('Practice section logo')).toBeVisible();
-await expect(page.getByTitle('Ready status')).toContainText('Ready');
-
-// MEDIUM (6/6)
-await page.getByLabel('Preferred Browser').selectOption('Firefox');
-await page.getByLabel('Scenario Notes').fill('Validate checkout and API response');
-await page.getByTitle('Refresh scenarios list').click();
-await expect(page.getByAltText('Partner company mark')).toBeVisible();
-await expect(page.getByTestId('medium-topic-list').getByText('Checkout workflow')).toBeVisible();
-await expect(page.locator('.locator-medium-card')).toContainText('Medium locator challenge card');
-
-// HARD (6/6)
-await page.getByTestId('hard-table')
-  .locator('tbody tr')
-  .filter({ hasText: 'Payment Retry' })
-  .getByTestId('hard-row-action')
-  .click();
-await page.getByTitle('Approve candidate profile').click();
-await page.getByLabel('Secret Token').fill('TOKEN-2026-XYZ');
-await expect(page.getByTitle('Active hard panel')).toContainText('Panel status: Active');
-await expect(page.getByAltText('Hard challenge visual')).toBeVisible();
-await page.getByRole('button', { name: 'Launch Final Check' }).click();
-
-// FILTER (each challenge item)
-await page.locator('[data-testid="filter-list"] li')
-  .filter({ hasText: 'Easy' })
-  .getByRole('button', { name: 'Open Challenge' })
-  .click();
-await page.locator('[data-testid="filter-list"] li')
-  .filter({ hasText: 'Medium' })
-  .getByRole('button', { name: 'Open Challenge' })
-  .click();
-await page.locator('[data-testid="filter-list"] li')
-  .filter({ hasText: 'Hard' })
-  .getByRole('button', { name: 'Open Challenge' })
-  .click();
-
-// CHAINING (each chain card)
-await page.getByTestId('chain-card-auth')
-  .getByRole('button', { name: 'Run Scenario' })
-  .click();
-await page.getByTestId('chain-card-payments')
-  .locator('[data-testid="chain-run-btn"]')
-  .click();
-await page.getByTestId('chain-card-grid')
-  .locator('[data-testid="chain-run-btn"]')
-  .click();
-
-// FINAL ASSERT
-await expect(page.getByTestId('locator-chain-status')).toBeVisible();`}</code>
-                </pre>
-              </div>
-            ) : null}
-          </div>
-
-          <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <motion.article
-              {...withDelay(0.04)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(160deg,#FFFFFF_0%,#EFF6FF_100%)] p-5 shadow-[0_16px_32px_-26px_rgba(37,99,235,0.4)]"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-lg font-bold text-[#0F172A]">Easy</h3>
-                <span className="rounded-full border border-[#DBEAFE] bg-white px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
-                  6 Elements
-                </span>
-              </div>
-              <div className="mt-4 space-y-3">
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <button
-                    type="button"
-                    data-testid="easy-btn-start"
-                    className="locator-easy-btn rounded-md bg-[#2563EB] px-3 py-2 text-sm font-semibold text-white"
-                  >
-                    Start Practice
-                  </button>
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <a
-                    href="#locator-practice"
-                    data-testid="easy-link-guide"
-                    className="locator-easy-link text-sm font-semibold text-[#1D4ED8] underline underline-offset-4"
-                  >
-                    Read Locator Guide
-                  </a>
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <label htmlFor="easy-name" className="mb-1 block text-xs font-semibold text-[#334155]">
-                    Learner Name
-                  </label>
-                  <input
-                    id="easy-name"
-                    data-testid="easy-input-name"
-                    placeholder="Type learner name"
-                    className="w-full rounded-md border border-[#CBD5E1] px-2.5 py-2 text-sm"
-                  />
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <input
-                    data-testid="easy-input-search"
-                    placeholder="Search by batch"
-                    className="locator-easy-search w-full rounded-md border border-[#CBD5E1] px-2.5 py-2 text-sm"
-                  />
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <img
-                    src="/company-logo.png"
-                    alt="Practice section logo"
-                    title="Logo for locator practice"
-                    data-testid="easy-logo-image"
-                    className="h-10 w-auto object-contain"
-                  />
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <span
-                    title="Ready status"
-                    data-testid="easy-status"
-                    className="inline-flex rounded-full border border-[#DBEAFE] bg-[#EFF6FF] px-2.5 py-1 text-xs font-semibold text-[#1D4ED8]"
-                  >
-                    Ready
+                <div className="flex items-start justify-between gap-3">
+                  <span className="rounded-full border border-[#DBEAFE] bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-[#2563EB]">
+                    {module.badge}
+                  </span>
+                  <span className="text-sm font-bold text-[#1D4ED8] transition-transform duration-200 group-hover:translate-x-0.5">
+                    &gt;
                   </span>
                 </div>
-              </div>
-            </motion.article>
-
-            <motion.article
-              {...withDelay(0.08)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(160deg,#FFFFFF_0%,#F0F9FF_100%)] p-5 shadow-[0_16px_32px_-26px_rgba(14,116,144,0.36)]"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-lg font-bold text-[#0F172A]">Medium</h3>
-                <span className="rounded-full border border-[#DBEAFE] bg-white px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
-                  6 Elements
-                </span>
-              </div>
-              <div className="mt-4 space-y-3">
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <label htmlFor="medium-browser" className="mb-1 block text-xs font-semibold text-[#334155]">
-                    Preferred Browser
-                  </label>
-                  <select
-                    id="medium-browser"
-                    data-testid="medium-browser-select"
-                    className="w-full rounded-md border border-[#CBD5E1] px-2.5 py-2 text-sm"
-                  >
-                    <option>Chromium</option>
-                    <option>Firefox</option>
-                    <option>WebKit</option>
-                  </select>
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <label htmlFor="medium-notes" className="mb-1 block text-xs font-semibold text-[#334155]">
-                    Scenario Notes
-                  </label>
-                  <textarea
-                    id="medium-notes"
-                    data-testid="medium-notes-input"
-                    placeholder="Write your scenario steps here"
-                    className="w-full rounded-md border border-[#CBD5E1] px-2.5 py-2 text-sm"
-                    rows={3}
-                  />
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <button
-                    type="button"
-                    title="Refresh scenarios list"
-                    data-testid="medium-refresh-btn"
-                    className="rounded-md border border-[#BFDBFE] px-3 py-2 text-sm font-semibold text-[#1D4ED8]"
-                  >
-                    Refresh Scenarios
-                  </button>
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <img
-                    src="/company-logos/TCS.NS.png"
-                    alt="Partner company mark"
-                    title="Partner logo"
-                    data-testid="medium-company-logo"
-                    className="h-9 w-auto object-contain"
-                  />
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <ul data-testid="medium-topic-list" className="locator-medium-list text-sm text-[#334155]">
-                    <li>Login workflow</li>
-                    <li>Checkout workflow</li>
-                    <li>API validation workflow</li>
-                  </ul>
-                </div>
-                <div
-                  title="Medium challenge card"
-                  data-testid="medium-card"
-                  className="locator-medium-card rounded-lg border border-dashed border-[#93C5FD] bg-white p-3 text-sm font-semibold text-[#334155]"
-                >
-                  Medium locator challenge card
-                </div>
-              </div>
-            </motion.article>
-
-            <motion.article
-              {...withDelay(0.12)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(160deg,#FFFFFF_0%,#EEF2FF_100%)] p-5 shadow-[0_16px_32px_-26px_rgba(30,58,138,0.36)]"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-lg font-bold text-[#0F172A]">Hard</h3>
-                <span className="rounded-full border border-[#DBEAFE] bg-white px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
-                  6 Elements
-                </span>
-              </div>
-              <div className="mt-4 space-y-3">
-                <div className="overflow-x-auto rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <table data-testid="hard-table" className="w-full min-w-[300px] text-left text-xs">
-                    <thead>
-                      <tr className="text-[#334155]">
-                        <th className="py-1">ID</th>
-                        <th className="py-1">Scenario</th>
-                        <th className="py-1">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="text-[#475569]">
-                        <td className="py-1">01</td>
-                        <td className="py-1">Payment Retry</td>
-                        <td className="py-1">
-                          <button
-                            type="button"
-                            data-testid="hard-row-action"
-                            className="rounded border border-[#BFDBFE] px-2 py-0.5 font-semibold text-[#1D4ED8]"
-                          >
-                            Retry
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <button
-                    type="button"
-                    title="Approve candidate profile"
-                    data-testid="hard-approve-btn"
-                    className="rounded-md border border-[#BFDBFE] px-3 py-2 text-sm font-semibold text-[#1D4ED8]"
-                  >
-                    Approve Candidate
-                  </button>
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <label htmlFor="hard-token" className="mb-1 block text-xs font-semibold text-[#334155]">
-                    Secret Token
-                  </label>
-                  <input
-                    id="hard-token"
-                    aria-label="Secret token input"
-                    data-testid="hard-token-input"
-                    placeholder="Enter secure token"
-                    className="hard-input locator-target-hard w-full rounded-md border border-[#CBD5E1] px-2.5 py-2 text-sm"
-                  />
-                </div>
-                <div
-                  title="Active hard panel"
-                  data-state="active"
-                  data-testid="hard-panel-active"
-                  className="hard-panel rounded-lg border border-dashed border-[#93C5FD] bg-white p-3 text-sm font-semibold text-[#334155]"
-                >
-                  Panel status: Active
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <img
-                    src="/company-logos/INFY.png"
-                    alt="Hard challenge visual"
-                    title="Hard challenge image"
-                    data-testid="hard-image"
-                    className="h-9 w-auto object-contain"
-                  />
-                </div>
-                <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
-                  <button
-                    type="button"
-                    aria-label="Launch final check"
-                    data-testid="hard-final-btn"
-                    className="rounded-md bg-[#0B2A4A] px-3 py-2 text-sm font-semibold text-white"
-                  >
-                    Launch Final Check
-                  </button>
-                </div>
-              </div>
-            </motion.article>
-          </div>
-
-          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <motion.article
-              {...withDelay(0.16)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
-            >
-              <h3 className="text-lg font-bold text-[#0F172A]">Filter Locator Challenges</h3>
-              <p className="mt-1 text-sm text-[#64748B]">
-                Practice <code>locator().filter({'{'} hasText {'}'})</code> with repeated items.
-              </p>
-              <ul data-testid="filter-list" className="mt-3 space-y-2">
-                {[
-                  { level: "Easy", module: "Form Inputs" },
-                  { level: "Medium", module: "Table Actions" },
-                  { level: "Hard", module: "Nested Module Cards" }
-                ].map((item) => (
-                  <li
-                    key={`${item.level}-${item.module}`}
-                    data-testid="filter-item"
-                    className="rounded-lg border border-[#E2E8F0] bg-white p-3"
-                  >
-                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-[#2563EB]">
-                          {item.level}
-                        </p>
-                        <p className="text-sm font-semibold text-[#0F172A]">{item.module}</p>
-                      </div>
-                      <button
-                        type="button"
-                        data-testid="filter-open-btn"
-                        onClick={() =>
-                          setLocatorChainStatus(`Filter open clicked: ${item.level} - ${item.module}`)
-                        }
-                        className="rounded-md border border-[#BFDBFE] px-2.5 py-1.5 text-xs font-semibold text-[#1D4ED8]"
-                      >
-                        Open Challenge
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </motion.article>
-
-            <motion.article
-              {...withDelay(0.2)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
-            >
-              <h3 className="text-lg font-bold text-[#0F172A]">Chaining Locator Challenges</h3>
-              <p className="mt-1 text-sm text-[#64748B]">
-                Chain from parent container to child button/input using scoped locators.
-              </p>
-              <div className="mt-3 space-y-2" data-testid="chain-card-list">
-                {[
-                  { id: "auth", title: "Auth Module", action: "Run Login Suite" },
-                  { id: "payments", title: "Payments Module", action: "Run Payment Suite" },
-                  { id: "grid", title: "Grid Module", action: "Run Grid Suite" }
-                ].map((card) => (
-                  <div
-                    key={card.id}
-                    data-testid={`chain-card-${card.id}`}
-                    className="rounded-lg border border-[#E2E8F0] bg-white p-3"
-                  >
-                    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-[#0F172A]">{card.title}</p>
-                        <p className="text-xs text-[#64748B]">{card.action}</p>
-                      </div>
-                      <button
-                        type="button"
-                        data-testid="chain-run-btn"
-                        onClick={() =>
-                          setLocatorChainStatus(`Chaining run clicked: ${card.title}`)
-                        }
-                        className="rounded-md bg-[#0B2A4A] px-2.5 py-1.5 text-xs font-semibold text-white"
-                      >
-                        Run Scenario
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.article>
-          </div>
-
-          <p
-            className="mt-4 rounded-lg border border-[#DBEAFE] bg-[#EFF6FF] px-3 py-2 text-sm font-semibold text-[#1D4ED8]"
-            data-testid="locator-chain-status"
-          >
-            {locatorChainStatus}
-          </p>
-        </motion.section>
-
-
-        <motion.section id="interactive-playground" {...revealProps} className={sectionClass}>
-          <div className="mb-6">
-            <h2 className="text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
-              Interactive Playwright Sandbox
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-[#64748B] sm:text-base">
-              Students can run Playwright tests directly against these live targets: clicks,
-              input boxes, iframe, shadow DOM, dialogs, drag-and-drop, table actions, and dynamic
-              waits.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-[#0F172A]">
-                Quick Sandbox Mapping (Answer Key)
-              </p>
-              <button
-                type="button"
-                data-testid="toggle-sandbox-answers"
-                aria-expanded={showSandboxAnswers}
-                aria-controls="quick-sandbox-answers"
-                onClick={() => setShowSandboxAnswers((prev) => !prev)}
-                className="rounded-lg border border-[#BFDBFE] bg-white px-3 py-2 text-xs font-semibold text-[#1D4ED8] transition-colors duration-200 hover:bg-[#EFF6FF]"
-              >
-                {showSandboxAnswers ? "Hide Sandbox Answers" : "Show Sandbox Answers"}
-              </button>
-            </div>
-
-            {showSandboxAnswers ? (
-              <div
-                id="quick-sandbox-answers"
-                className="mt-3 rounded-xl border border-[#1E3A8A] bg-[#0F172A] p-4"
-              >
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#93C5FD]">
-                  Answers For Interactive Sandbox
-                </p>
-                <pre className="mt-2 overflow-x-auto text-xs leading-6 text-[#E2E8F0]">
-                  <code>{`// Click / Double / Hover
-await page.getByTestId('single-click-btn').click();
-await page.getByTestId('double-click-btn').dblclick();
-await page.getByTestId('hover-btn').hover();
-
-// Form + Keyboard
-await page.getByTestId('name-input').fill('Arun');
-await page.getByTestId('email-input').fill('arun@test.com');
-await page.getByTestId('track-select').selectOption('Playwright Core');
-await page.getByTestId('remember-checkbox').check();
-await page.getByTestId('mode-api-radio').check();
-await page.getByTestId('submit-form-btn').click();
-await page.getByTestId('keyboard-input').fill('run smoke');
-await page.getByTestId('keyboard-input').press('Enter');
-
-// Wait commands
-await Promise.all([
-  page.waitForNavigation({ timeout: 15000 }),
-  page.getByTestId('wait-navigation-link').click()
-]);
-await Promise.all([
-  page.waitForResponse((res) => res.url().includes('/api/practice/waits-status') && res.ok(), { timeout: 15000 }),
-  page.getByTestId('wait-response-btn').click()
-]);
-await Promise.all([
-  page.waitForURL('**/practice?wait=ready*', { timeout: 15000 }),
-  page.getByTestId('wait-url-btn').click()
-]);
-await Promise.all([
-  page.waitForLoadState('load', { timeout: 15000 }),
-  page.getByTestId('wait-loadstate-link').click()
-]);
-await page.getByTestId('wait-locator-btn').click();
-await page.getByTestId('wait-locator-target').waitFor({ state: 'visible' });
-await page.getByTestId('wait-selector-btn').click();
-await page.waitForSelector('[data-testid="wait-selector-target"]', { state: 'visible' });
-
-// Drag / Upload / Download
-await page.getByTestId('drag-source').dragTo(page.getByTestId('drop-target'));
-await page.getByTestId('file-upload-input').setInputFiles('fixtures/sample.csv');
-const dl = page.waitForEvent('download');
-await page.getByTestId('download-pdf-btn').click();
-await (await dl).saveAs('downloads/practice-report.pdf');
-
-// Dialog / Popup
-page.once('dialog', async (dialog) => await dialog.accept());
-await page.getByTestId('alert-btn').click();
-const popupPromise = page.waitForEvent('popup');
-await page.getByTestId('popup-link').click();
-const popup = await popupPromise;
-await expect(popup.locator('#popup-title')).toBeVisible();
-
-// Table + Read Ops
-await page.getByTestId('select-usr-01').click();
-const textVal = await page.getByTestId('extract-textcontent-target').textContent();
-const innerVal = await page.getByTestId('extract-innertext-target').innerText();
-const inputVal = await page.getByTestId('extract-inputvalue-target').inputValue();
-const attrVal = await page.getByTestId('extract-attribute-target').getAttribute('data-track');
-const allTextVals = await page.locator('[data-testid="extract-list-item"]').allTextContents();
-const allInnerVals = await page.locator('[data-testid="extract-list-item"]').allInnerTexts();
-await page.getByTestId('mark-readops-btn').click();
-
-// iFrame + Shadow DOM
-await page.frameLocator('#practice-iframe').locator('#frame-input').fill('Batch 01');
-await page.frameLocator('#practice-iframe').locator('#frame-save').click();
-const shadowHost = page.locator('[data-testid="shadow-host"]');
-await shadowHost.locator('#shadow-input').fill('shadow value');
-await shadowHost.locator('#shadow-save').click();
-
-// Dedicated Network Mocking Lab
-await page.getByTestId('network-mocking-link').click();
-await expect(page).toHaveURL(/\\/practice\\/network-mocking/);
-
-// Dedicated Advanced Table Lab
-await page.getByTestId('table-pagination-link').click();
-await expect(page).toHaveURL(/\\/practice\\/table-pagination/);`}</code>
-                </pre>
-              </div>
-            ) : null}
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 [&>*]:min-w-0 lg:grid-cols-2">
-            <motion.article
-              {...withDelay(0.02)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
-            >
-              <h3 className="text-lg font-bold text-[#0F172A]">Click, Double Click, Hover</h3>
-              <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
-                <button
-                  type="button"
-                  data-testid="single-click-btn"
-                  onClick={() => setSingleClickStatus("Single click completed.")}
-                  className="w-full rounded-lg bg-[#2563EB] px-3 py-2 text-left text-sm font-semibold text-white sm:w-auto sm:text-center"
-                >
-                  Single Click
-                </button>
-                <button
-                  type="button"
-                  data-testid="double-click-btn"
-                  onDoubleClick={() => setDoubleClickStatus("Double click completed.")}
-                  className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
-                >
-                  Double Click
-                </button>
-                <div className="relative inline-flex w-full items-center sm:w-auto">
-                  <button
-                    type="button"
-                    data-testid="hover-btn"
-                    onMouseEnter={() => setHoverStatus("Hover triggered successfully.")}
-                    onFocus={() => setHoverStatus("Hover triggered successfully.")}
-                    className="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-left text-sm font-semibold text-[#0F172A] sm:w-auto sm:text-center"
-                  >
-                    Hover Target
-                  </button>
-                </div>
-
-                <div className="relative inline-flex w-full items-center sm:w-auto">
-                  <button
-                    type="button"
-                    data-testid="tooltip-trigger-btn"
-                    aria-label="Tooltip target"
-                    onMouseEnter={() => {
-                      setHoverTooltipStatus("Tooltip verified successfully.");
-                      setIsHoverTooltipVisible(true);
-                    }}
-                    onMouseLeave={() => setIsHoverTooltipVisible(false)}
-                    onFocus={() => {
-                      setHoverTooltipStatus("Tooltip verified successfully.");
-                      setIsHoverTooltipVisible(true);
-                    }}
-                    onBlur={() => setIsHoverTooltipVisible(false)}
-                    className="inline-flex h-9 w-full items-center justify-center rounded-full border border-[#BFDBFE] bg-[#EFF6FF] px-3 text-xs font-bold text-[#1D4ED8] transition-colors duration-200 hover:bg-[#DBEAFE] sm:w-auto"
-                  >
-                    Tooltip
-                  </button>
-                  <span
-                    role="tooltip"
-                    data-testid="hover-tooltip"
-                    className={`pointer-events-none absolute left-1/2 top-[calc(100%+8px)] z-10 -translate-x-1/2 whitespace-nowrap rounded-md border border-[#BFDBFE] bg-[#EFF6FF] px-2 py-1 text-xs font-semibold text-[#1D4ED8] shadow-[0_8px_18px_-14px_rgba(37,99,235,0.9)] transition-opacity duration-200 sm:left-[calc(100%+8px)] sm:top-1/2 sm:-translate-y-1/2 sm:translate-x-0 ${
-                      isHoverTooltipVisible ? "opacity-100" : "opacity-0"
-                    }`}
-                  >
-                    Tooltip verified
-                  </span>
-                </div>
-              </div>
-              <div className="mt-3 space-y-1">
-                <SandboxResult
-                  label="Single"
-                  value={singleClickStatus}
-                  dataTestId="single-click-status"
-                  state={singleClickStatus !== initialSandboxStatus.singleClick ? "done" : "idle"}
-                />
-                <SandboxResult
-                  label="Double"
-                  value={doubleClickStatus}
-                  dataTestId="double-click-status"
-                  state={doubleClickStatus !== initialSandboxStatus.doubleClick ? "done" : "idle"}
-                />
-                <SandboxResult
-                  label="Hover"
-                  value={hoverStatus}
-                  dataTestId="hover-status"
-                  state={hoverStatus !== initialSandboxStatus.hover ? "done" : "idle"}
-                />
-                <SandboxResult
-                  label="Tooltip"
-                  value={hoverTooltipStatus}
-                  dataTestId="hover-tooltip-status"
-                  state={hoverTooltipStatus !== initialSandboxStatus.hoverTooltip ? "done" : "idle"}
-                />
-              </div>
-            </motion.article>
-
-            <motion.article
-              {...withDelay(0.05)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
-            >
-              <h3 className="text-lg font-bold text-[#0F172A]">Inputs, Checkbox, Radio, Dropdown</h3>
-              <form className="mt-3 space-y-3" onSubmit={submitPracticeForm}>
-                <label className="block text-sm font-semibold text-[#334155]">
-                  Learner Name
-                  <input
-                    data-testid="name-input"
-                    value={practiceForm.name}
-                    onChange={(event) => updateForm("name", event.target.value)}
-                    className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm"
-                    placeholder="Enter your name"
-                  />
-                </label>
-                <label className="block text-sm font-semibold text-[#334155]">
-                  Email
-                  <input
-                    data-testid="email-input"
-                    type="email"
-                    value={practiceForm.email}
-                    onChange={(event) => updateForm("email", event.target.value)}
-                    className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm"
-                    placeholder="student@academy.com"
-                  />
-                </label>
-                <label className="block text-sm font-semibold text-[#334155]">
-                  Track
-                  <select
-                    data-testid="track-select"
-                    value={practiceForm.track}
-                    onChange={(event) => updateForm("track", event.target.value)}
-                    className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm"
-                  >
-                    <option value="">Select track</option>
-                    <option value="Playwright Core">Playwright Core</option>
-                    <option value="API + UI">API + UI</option>
-                    <option value="CI/CD + Framework">CI/CD + Framework</option>
-                  </select>
-                </label>
-
-                <div className="grid gap-2 text-sm text-[#334155] sm:flex sm:flex-wrap sm:gap-4">
-                  <label className="inline-flex items-center gap-2">
-                    <input
-                      data-testid="remember-checkbox"
-                      type="checkbox"
-                      checked={rememberChoice}
-                      onChange={(event) => setRememberChoice(event.target.checked)}
-                    />
-                    Remember preference
-                  </label>
-                  <label className="inline-flex items-center gap-2">
-                    <input
-                      data-testid="mode-ui-radio"
-                      type="radio"
-                      name="learning-mode"
-                      value="ui"
-                      checked={learningMode === "ui"}
-                      onChange={(event) => setLearningMode(event.target.value)}
-                    />
-                    UI Mode
-                  </label>
-                  <label className="inline-flex items-center gap-2">
-                    <input
-                      data-testid="mode-api-radio"
-                      type="radio"
-                      name="learning-mode"
-                      value="api"
-                      checked={learningMode === "api"}
-                      onChange={(event) => setLearningMode(event.target.value)}
-                    />
-                    API Mode
-                  </label>
-                </div>
-
-                <button
-                  type="submit"
-                  data-testid="submit-form-btn"
-                  className="rounded-lg bg-[#0B2A4A] px-3 py-2 text-sm font-semibold text-white"
-                >
-                  Submit Practice Form
-                </button>
-              </form>
-              <SandboxResult
-                label="Form"
-                value={formStatus}
-                dataTestId="form-status"
-                state={formStatus !== initialSandboxStatus.form ? "done" : "idle"}
-              />
-            </motion.article>
-
-            <motion.article
-              {...withDelay(0.08)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
-            >
-              <h3 className="text-lg font-bold text-[#0F172A]">Dynamic Waits and Keyboard</h3>
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  data-testid="async-load-btn"
-                  onClick={triggerAsyncMessage}
-                  className="rounded-lg bg-[#2563EB] px-3 py-2 text-sm font-semibold text-white"
-                >
-                  Load Async Result
-                </button>
-                {isAsyncLoading ? (
-                  <div
-                    data-testid="async-spinner"
-                    className="spinner animate-spin rounded-full border-2 border-[#BFDBFE] border-t-[#2563EB] p-2"
-                    aria-label="Loading"
-                  />
-                ) : null}
-              </div>
-              <SandboxResult
-                label="Async"
-                value={asyncStatus}
-                dataTestId="async-status"
-                state={
-                  isAsyncLoading
-                    ? "loading"
-                    : asyncStatus !== initialSandboxStatus.async
-                      ? "done"
-                      : "idle"
-                }
-              />
-
-              <label className="mt-4 block text-sm font-semibold text-[#334155]">
-                Command Input (press Enter)
-                <input
-                  data-testid="keyboard-input"
-                  value={keyboardValue}
-                  onChange={(event) => setKeyboardValue(event.target.value)}
-                  onKeyDown={handleKeyboardSubmit}
-                  placeholder="Type and press Enter"
-                  className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm"
-                />
-              </label>
-              <SandboxResult
-                label="Keyboard"
-                value={keyboardStatus}
-                dataTestId="keyboard-status"
-                state={keyboardStatus !== initialSandboxStatus.keyboard ? "done" : "idle"}
-              />
-            </motion.article>
-
-            <motion.article
-              {...withDelay(0.11)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
-            >
-              <h3 className="text-lg font-bold text-[#0F172A]">Drag and Drop + File Upload/Download</h3>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <div
-                  draggable
-                  data-testid="drag-source"
-                  onDragStart={handleDragStart}
-                  className="cursor-move rounded-lg border border-dashed border-[#93C5FD] bg-white px-3 py-4 text-center text-sm font-semibold text-[#1D4ED8]"
-                >
-                  Drag this card
-                </div>
-                <div
-                  data-testid="drop-target"
-                  onDragOver={allowDrop}
-                  onDrop={handleDrop}
-                  className="rounded-lg border border-dashed border-[#CBD5E1] bg-white px-3 py-4 text-center text-sm font-semibold text-[#334155]"
-                >
-                  Drop target
-                </div>
-              </div>
-              <SandboxResult
-                label="Drop"
-                value={dropStatus}
-                dataTestId="drop-status"
-                state={dropStatus !== initialSandboxStatus.drop ? "done" : "idle"}
-              />
-
-              <label className="mt-4 block text-sm font-semibold text-[#334155]">
-                Upload file
-                <p className="mt-1 text-xs font-medium text-[#64748B]">
-                  Allowed types: PDF, CSV, XML, TXT
-                </p>
-                <input
-                  data-testid="file-upload-input"
-                  type="file"
-                  accept=".pdf,.csv,.xml,.txt,text/plain,application/pdf,text/csv,application/xml,text/xml"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (!file) {
-                      setUploadedFileName(initialSandboxStatus.upload);
-                      return;
-                    }
-
-                    if (!isSupportedUpload(file.name)) {
-                      setUploadedFileName("Invalid file type. Upload PDF, CSV, XML, or TXT only.");
-                      event.target.value = "";
-                      return;
-                    }
-
-                    setUploadedFileName(`${file.name} uploaded successfully.`);
-                  }}
-                  className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm"
-                />
-              </label>
-              <SandboxResult
-                label="Upload"
-                value={uploadedFileName}
-                dataTestId="upload-status"
-                state={uploadedFileName !== initialSandboxStatus.upload ? "done" : "idle"}
-                className="profile-preview"
-              />
-
-              <div className="mt-4">
-                <p className="text-sm font-semibold text-[#334155]">Download sample files</p>
-              <div className="mt-2 grid gap-2 sm:flex sm:flex-wrap">
-                <button
-                  type="button"
-                  data-testid="download-pdf-btn"
-                  onClick={() => handleDownloadFile("pdf")}
-                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
-                >
-                  Download PDF
-                </button>
-                <button
-                  type="button"
-                  data-testid="download-csv-btn"
-                  onClick={() => handleDownloadFile("csv")}
-                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
-                >
-                  Download CSV
-                </button>
-                <button
-                  type="button"
-                  data-testid="download-xml-btn"
-                  onClick={() => handleDownloadFile("xml")}
-                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
-                >
-                  Download XML
-                </button>
-                <button
-                  type="button"
-                  data-testid="download-txt-btn"
-                  onClick={() => handleDownloadFile("txt")}
-                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
-                >
-                  Download TXT
-                </button>
-              </div>
-              </div>
-
-              <SandboxResult
-                label="Download"
-                value={downloadStatus}
-                dataTestId="download-status"
-                state={downloadStatus !== initialSandboxStatus.download ? "done" : "idle"}
-              />
-            </motion.article>
-
-            <motion.article
-              {...withDelay(0.14)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
-            >
-              <h3 className="text-lg font-bold text-[#0F172A]">Dialogs and Popup</h3>
-              <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
-                <button
-                  type="button"
-                  data-testid="alert-btn"
-                  onClick={triggerAlert}
-                  className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
-                >
-                  Trigger Alert
-                </button>
-                <button
-                  type="button"
-                  data-testid="confirm-btn"
-                  onClick={triggerConfirm}
-                  className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
-                >
-                  Trigger Confirm
-                </button>
-                <button
-                  type="button"
-                  data-testid="prompt-btn"
-                  onClick={triggerPrompt}
-                  className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
-                >
-                  Trigger Prompt
-                </button>
-              </div>
-              <SandboxResult
-                label="Dialog"
-                value={dialogStatus}
-                dataTestId="dialog-status"
-                state={dialogStatus !== initialSandboxStatus.dialog ? "done" : "idle"}
-              />
-              <a
-                href="/practice/popup"
-                target="_blank"
-                rel="noopener noreferrer"
-                data-testid="popup-link"
-                className="mt-3 inline-flex text-sm font-semibold text-[#2563EB] underline underline-offset-4"
-              >
-                Open popup tab
-              </a>
-            </motion.article>
-
-            <motion.article
-              {...withDelay(0.17)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
-            >
-              <h3 className="text-lg font-bold text-[#0F172A]">Table and Row Actions</h3>
-              <div className="mt-3 overflow-x-auto">
-                <table data-testid="learner-table" className="w-full min-w-[420px] text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-[#E2E8F0] text-[#334155]">
-                      <th className="px-2 py-2 font-semibold">Name</th>
-                      <th className="px-2 py-2 font-semibold">Role</th>
-                      <th className="px-2 py-2 font-semibold">Status</th>
-                      <th className="px-2 py-2 font-semibold">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {practiceUsers.map((user) => (
-                      <tr
-                        key={user.id}
-                        data-testid={`row-${user.id}`}
-                        className="border-b border-[#E2E8F0] text-[#475569]"
-                      >
-                        <td className="px-2 py-2">{user.name}</td>
-                        <td className="px-2 py-2">{user.role}</td>
-                        <td className="px-2 py-2">{user.status}</td>
-                        <td className="px-2 py-2">
-                          <button
-                            type="button"
-                            data-testid={`select-${user.id}`}
-                            onClick={() => setTableStatus(`${user.name} selected for edit.`)}
-                            className="rounded-md border border-[#BFDBFE] bg-white px-2 py-1 text-xs font-semibold text-[#1E3A8A]"
-                          >
-                            Select
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <SandboxResult
-                label="Table"
-                value={tableStatus}
-                dataTestId="table-status"
-                state={tableStatus !== initialSandboxStatus.table ? "done" : "idle"}
-              />
-            </motion.article>
-
-            <motion.article
-              {...withDelay(0.2)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
-            >
-              <h3 className="text-lg font-bold text-[#0F172A]">Text and Attribute Extraction</h3>
-              <p className="mt-1 text-sm text-[#64748B]">
-                Practice read commands: <code>textContent</code>, <code>innerText</code>,{" "}
-                <code>inputValue</code>, <code>getAttribute</code>, <code>allTextContents</code>,{" "}
-                <code>allInnerTexts</code>.
-              </p>
-
-              <div className="mt-3 grid gap-2">
-                <div
-                  data-testid="extract-textcontent-target"
-                  className="flex min-h-[42px] items-center rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-sm text-[#334155]"
-                >
-                  TextContent target visible text
-                  <span className="hidden"> hidden text for textContent check</span>
-                </div>
-
-                <input
-                  data-testid="extract-inputvalue-target"
-                  defaultValue="Batch-2026-Playwright"
-                  className="w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm"
-                />
-
-                <button
-                  type="button"
-                  title="Extraction attribute target"
-                  data-testid="extract-attribute-target"
-                  data-track="advanced-playwright"
-                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8]"
-                >
-                  Attribute Target
-                </button>
-
-                <ul data-testid="extract-list" className="space-y-1 rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-sm text-[#334155]">
-                  <li data-testid="extract-list-item">
-                    API module item
-                    <span className="hidden"> hidden-api</span>
-                  </li>
-                  <li data-testid="extract-list-item">
-                    UI module item
-                    <span className="hidden"> hidden-ui</span>
-                  </li>
-                  <li data-testid="extract-list-item">
-                    CI module item
-                    <span className="hidden"> hidden-ci</span>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                type="button"
-                data-testid="mark-readops-btn"
-                onClick={() => setReadOpsStatus("Read operation checks completed.")}
-                className="mt-3 rounded-lg bg-[#0B2A4A] px-3 py-2 text-sm font-semibold text-white"
-              >
-                Mark Read Ops Complete
-              </button>
-
-              <SandboxResult
-                label="Read Ops"
-                value={readOpsStatus}
-                dataTestId="readops-status"
-                state={readOpsStatus !== initialSandboxStatus.readOps ? "done" : "idle"}
-              />
-            </motion.article>
-
-            <motion.article
-              {...withDelay(0.23)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
-            >
-              <h3 className="text-lg font-bold text-[#0F172A]">Wait Commands Lab</h3>
-              <p className="mt-1 text-sm text-[#64748B]">
-                Practice: <code>waitForNavigation</code>, <code>waitForResponse</code>,{" "}
-                <code>waitForURL</code>, <code>waitForLoadState</code>,{" "}
-                <code>locator.waitFor</code>, <code>waitForSelector</code>.
-              </p>
-
-              <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
-                <a
-                  href="/practice/popup?source=waitfornavigation"
-                  data-testid="wait-navigation-link"
-                  onClick={handleDelayedNavigation}
-                  className="block w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
-                >
-                  Navigation Link
-                </a>
-                <button
-                  type="button"
-                  data-testid="wait-response-btn"
-                  onClick={triggerWaitResponse}
-                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
-                >
-                  Trigger API Response
-                </button>
-                <button
-                  type="button"
-                  data-testid="wait-url-btn"
-                  onClick={triggerWaitUrlChange}
-                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
-                >
-                  Update URL
-                </button>
-                <button
-                  type="button"
-                  data-testid="wait-loadstate-link"
-                  onClick={triggerWaitLoadState}
-                  className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
-                >
-                  Reload for LoadState
-                </button>
-              </div>
-
-              <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
-                <button
-                  type="button"
-                  data-testid="wait-locator-btn"
-                  onClick={triggerLocatorWaitTarget}
-                  className="w-full rounded-md bg-[#0B2A4A] px-3 py-1.5 text-left text-xs font-semibold text-white sm:w-auto sm:text-center"
-                >
-                  Reveal Locator Target
-                </button>
-                <button
-                  type="button"
-                  data-testid="wait-selector-btn"
-                  onClick={triggerSelectorWaitTarget}
-                  className="w-full rounded-md bg-[#0B2A4A] px-3 py-1.5 text-left text-xs font-semibold text-white sm:w-auto sm:text-center"
-                >
-                  Reveal Selector Target
-                </button>
-              </div>
-
-              <div className="mt-3 space-y-2">
-                {locatorWaitVisible ? (
-                  <div
-                    data-testid="wait-locator-target"
-                    className="rounded-lg border border-[#93C5FD] bg-[#EFF6FF] px-3 py-2 text-sm font-semibold text-[#1D4ED8]"
-                  >
-                    Locator wait target is visible.
-                  </div>
-                ) : (
-                  <div
-                    data-testid="wait-locator-placeholder"
-                    className="rounded-lg border border-dashed border-[#CBD5E1] bg-white px-3 py-2 text-sm text-[#64748B]"
-                  >
-                    Locator target hidden. Click reveal button.
-                  </div>
-                )}
-
-                {selectorWaitVisible ? (
-                  <div
-                    data-testid="wait-selector-target"
-                    className="rounded-lg border border-[#93C5FD] bg-[#EFF6FF] px-3 py-2 text-sm font-semibold text-[#1D4ED8]"
-                  >
-                    Selector wait target is visible.
-                  </div>
-                ) : (
-                  <div
-                    data-testid="wait-selector-placeholder"
-                    className="rounded-lg border border-dashed border-[#CBD5E1] bg-white px-3 py-2 text-sm text-[#64748B]"
-                  >
-                    Selector target hidden. Click reveal button.
-                  </div>
-                )}
-              </div>
-
-              <SandboxResult
-                label="Wait Ops"
-                value={waitOpsStatus}
-                dataTestId="waitops-status"
-                state={
-                  waitOpsStatus === initialSandboxStatus.waitCmd
-                    ? "idle"
-                    : waitOpsStatus.toLowerCase().includes("in progress") ||
-                        waitOpsStatus.toLowerCase().includes("scheduled") ||
-                        waitOpsStatus === "Triggering locator wait target..." ||
-                        waitOpsStatus === "Triggering selector wait target..."
-                      ? "loading"
-                      : "done"
-                }
-              />
-            </motion.article>
-
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 gap-4 [&>*]:min-w-0 lg:grid-cols-2">
-            <motion.article
-              {...withDelay(0.2)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
-            >
-              <h3 className="text-lg font-bold text-[#0F172A]">iFrame Practice Target</h3>
-              <p className="mt-1 text-sm text-[#64748B]">
-                Use <code>frameLocator('#practice-iframe')</code> to automate inside this frame.
-              </p>
-              <iframe
-                id="practice-iframe"
-                data-testid="practice-iframe"
-                title="Playwright iframe practice"
-                srcDoc={iframeDoc}
-                className="mt-3 h-56 w-full rounded-lg border border-[#CBD5E1] bg-white"
-              />
-            </motion.article>
-
-            <motion.article
-              {...withDelay(0.23)}
-              className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
-            >
-              <h3 className="text-lg font-bold text-[#0F172A]">Shadow DOM Practice Target</h3>
-              <p className="mt-1 text-sm text-[#64748B]">
-                Use locator chaining through shadow root to fill and save values.
-              </p>
-              <div className="mt-3 rounded-lg border border-[#CBD5E1] bg-white p-3">
-                <pw-shadow-lab data-testid="shadow-host" className="block w-full" />
-              </div>
-            </motion.article>
-          </div>
-
-          <motion.article
-            {...withDelay(0.26)}
-            className="mt-4 rounded-xl border border-[#DBEAFE] bg-[#EFF6FF] p-4 shadow-[0_10px_26px_-22px_rgba(37,99,235,0.45)]"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#1D4ED8]">
-                  Advanced Practice
-                </p>
-                <h3 className="mt-1 text-base font-bold text-[#0F172A] sm:text-lg">
-                  Advanced Practice Labs
-                </h3>
-                <p className="mt-1 text-sm text-[#475569]">
-                  Open dedicated advanced pages for <code>network interception</code> and{" "}
-                  <code>table pagination with filters</code>.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  href="/practice/network-mocking"
-                  data-testid="network-mocking-link"
-                  className="inline-flex items-center rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md"
-                >
-                  Open Network Lab
-                </Link>
-                <Link
-                  href="/practice/table-pagination"
-                  data-testid="table-pagination-link"
-                  className="inline-flex items-center rounded-lg border border-[#93C5FD] bg-white px-4 py-2 text-sm font-semibold text-[#1D4ED8] shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#DBEAFE] hover:shadow-md"
-                >
-                  Open Table Lab
-                </Link>
-              </div>
-            </div>
-          </motion.article>
-        </motion.section>
-
-        <motion.section id="scenario-list" {...revealProps} className={sectionClass}>
-          <h2 className="text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
-            Element Test Scenarios
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-[#64748B] sm:text-base">
-            Execute these scenarios to automate every interactive element in the practice sandbox.
-          </p>
-
-          <div className="mt-5 space-y-3">
-            {elementScenarios.map((scenario, index) => {
-              const isOpen = openScenarioId === scenario.id;
-              const panelId = `scenario-panel-${scenario.id}`;
-              const buttonId = `scenario-button-${scenario.id}`;
-
-              return (
-                <motion.article
-                  key={scenario.id}
-                  {...withDelay(index * 0.04)}
-                  className="rounded-xl border border-[#E2E8F0] bg-white p-4 shadow-[0_12px_30px_-24px_rgba(11,42,74,0.35)]"
-                >
-                  <button
-                    id={buttonId}
-                    type="button"
-                    aria-expanded={isOpen}
-                    aria-controls={panelId}
-                    onClick={() => toggleScenario(scenario.id)}
-                    className="flex w-full items-start justify-between gap-3 text-left"
-                  >
-                    <div>
-                      <span className="inline-flex rounded-full border border-[#DBEAFE] bg-[#EFF6FF] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#1D4ED8]">
-                        {scenario.source}
-                      </span>
-                      <h3 className="mt-2 text-base font-bold text-[#0F172A] sm:text-lg">
-                        {scenario.title}
-                      </h3>
-                    </div>
-                    <span
-                      className="mt-1 inline-flex h-6 w-6 items-center justify-center rounded-full border border-[#DBEAFE] bg-[#EFF6FF] text-[#2563EB]"
-                      aria-hidden="true"
-                    >
-                      <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" aria-hidden="true">
-                        <path
-                          d="M5 10H15"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.8"
-                          strokeLinecap="round"
-                        />
-                        {!isOpen ? (
-                          <path
-                            d="M10 5V15"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                          />
-                        ) : null}
-                      </svg>
-                    </span>
-                  </button>
-
-                  <div
-                    id={panelId}
-                    role="region"
-                    aria-labelledby={buttonId}
-                    className={`grid overflow-hidden transition-[grid-template-rows,opacity,margin] duration-300 ${
-                      isOpen ? "mt-3 grid-rows-[1fr] opacity-100" : "mt-0 grid-rows-[0fr] opacity-70"
-                    }`}
-                  >
-                    <div className="overflow-hidden">
-                      <ol className="space-y-1.5 text-sm leading-6 text-[#475569]">
-                        {scenario.steps.map((step, stepIndex) => (
-                          <li key={`${scenario.id}-step-${stepIndex}`}>{`${stepIndex + 1}. ${step}`}</li>
-                        ))}
-                      </ol>
-
-                      <p className="mt-3 rounded-lg border border-[#DBEAFE] bg-[#EFF6FF] px-3 py-2 text-sm font-semibold text-[#1D4ED8]">
-                        Verify: {scenario.assertion}
-                      </p>
-                    </div>
-                  </div>
-                </motion.article>
-              );
-            })}
+                <h3 className="mt-3 text-base font-bold text-[#0F172A]">{module.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[#475569]">{module.description}</p>
+              </Link>
+            ))}
           </div>
         </motion.section>
+
       </main>
     </div>
   );
 }
+
 
 

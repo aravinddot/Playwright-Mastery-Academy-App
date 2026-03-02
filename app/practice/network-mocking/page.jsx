@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { savePracticeModuleProgress } from "../../../lib/practiceProgress";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -38,6 +39,8 @@ const initialStatus = {
   orders: "Pending orders request."
 };
 
+const totalNetworkTasks = 4;
+
 const formatJson = (value) => JSON.stringify(value, null, 2);
 
 const getValueType = (value) => {
@@ -71,7 +74,6 @@ function StatusLine({ label, value, testId, done = false }) {
 
 export default function NetworkMockingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showAnswers, setShowAnswers] = useState(false);
   const [profileStatus, setProfileStatus] = useState(initialStatus.profile);
   const [continueStatus, setContinueStatus] = useState(initialStatus.continueMode);
   const [flagsStatus, setFlagsStatus] = useState(initialStatus.flags);
@@ -80,6 +82,17 @@ export default function NetworkMockingPage() {
   const [continueData, setContinueData] = useState(null);
   const [flagsData, setFlagsData] = useState(null);
   const [ordersData, setOrdersData] = useState(null);
+
+  useEffect(() => {
+    const completedTasks = [
+      profileStatus !== initialStatus.profile && !profileStatus.includes("Loading"),
+      continueStatus !== initialStatus.continueMode && !continueStatus.includes("Sending"),
+      flagsStatus !== initialStatus.flags && !flagsStatus.includes("Loading"),
+      ordersStatus !== initialStatus.orders && !ordersStatus.includes("Loading")
+    ].filter(Boolean).length;
+
+    savePracticeModuleProgress("/practice/network-mocking", completedTasks, totalNetworkTasks);
+  }, [profileStatus, continueStatus, flagsStatus, ordersStatus]);
 
   const loadLiveProfile = async () => {
     setProfileStatus("Loading profile endpoint...");
@@ -325,75 +338,6 @@ export default function NetworkMockingPage() {
 
       <main className="mx-auto w-full max-w-6xl space-y-8 px-6 py-10 lg:px-8 lg:py-12">
         <motion.section {...revealProps} className={sectionClass}>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
-              Quick Network Mapping
-            </h2>
-            <button
-              type="button"
-              data-testid="toggle-network-answers"
-              aria-expanded={showAnswers}
-              aria-controls="network-answer-panel"
-              onClick={() => setShowAnswers((prev) => !prev)}
-              className="rounded-lg border border-[#BFDBFE] bg-white px-3 py-2 text-xs font-semibold text-[#1D4ED8] transition-colors duration-200 hover:bg-[#EFF6FF]"
-            >
-              {showAnswers ? "Hide Network Answers" : "Show Network Answers"}
-            </button>
-          </div>
-
-          {showAnswers ? (
-            <div
-              id="network-answer-panel"
-              className="mt-4 rounded-xl border border-[#1E3A8A] bg-[#0F172A] p-4"
-            >
-              <pre className="overflow-x-auto text-xs leading-6 text-[#E2E8F0]">
-                <code>{`// Navigate from Interactive Sandbox
-await page.getByTestId('network-mocking-link').click();
-await expect(page).toHaveURL(/\\/practice\\/network-mocking/);
-
-// route.continue() header override
-await page.route('**/api/practice/network/profile', async (route) => {
-  const headers = { ...route.request().headers(), 'x-intercept-source': 'route-continue' };
-  await route.continue({ headers });
-});
-await page.getByTestId('net-continue-btn').click();
-await expect(page.getByTestId('net-continue-source')).toContainText('route-continue');
-
-// route.fulfill() mock flags
-await page.route('**/api/practice/network/flags', async (route) => {
-  await route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({
-      source: 'mocked-route',
-      flags: {
-        betaDashboard: 'disabled',
-        aiInsights: true,
-        mcpAssist: 'pilot-mode',
-        smartRetries: false
-      }
-    })
-  });
-});
-await page.getByTestId('net-flags-btn').click();
-await expect(page.getByTestId('net-flags-source')).toContainText('mocked-route');
-
-// route.abort() for orders
-await page.route('**/api/practice/network/orders', (route) => route.abort());
-await page.getByTestId('net-orders-btn').click();
-await expect(page.getByTestId('net-orders-status')).toContainText('failed');
-
-// waitForResponse()
-await Promise.all([
-  page.waitForResponse((res) => res.url().includes('/api/practice/network/orders')),
-  page.getByTestId('net-orders-btn').click()
-]);`}</code>
-              </pre>
-            </div>
-          ) : null}
-        </motion.section>
-
-        <motion.section {...revealProps} className={sectionClass}>
           <h2 className="text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
             Interactive Network Playground
           </h2>
@@ -562,57 +506,47 @@ await Promise.all([
         </motion.section>
 
         <motion.section {...revealProps} className={sectionClass}>
-          <h2 className="text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
-            Test Targets List
-          </h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {[
-              "net-live-profile-btn",
-              "net-continue-btn",
-              "net-continue-source",
-              "net-flags-btn",
-              "net-flag-list",
-              "net-orders-btn",
-              "net-orders-error-btn",
-              "net-orders-status",
-              "net-orders-json"
-            ].map((id) => (
-              <div
-                key={id}
-                className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-sm font-semibold text-[#334155]"
-              >
-                <code>{id}</code>
-              </div>
-            ))}
+          <div className="mb-6">
+            <h2 className="text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
+              Dedicated Practice Modules
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[#64748B] sm:text-base">
+              Open each practice module in its own page for focused learning and cleaner navigation.
+            </p>
           </div>
-        </motion.section>
 
-        <motion.section
-          {...revealProps}
-          className="rounded-xl border border-[#0b2a4a]/40 bg-[linear-gradient(135deg,#0B2A4A_0%,#1E3A8A_100%)] p-6 text-white shadow-[0_18px_42px_-24px_rgba(11,42,74,0.55)] sm:p-8"
-        >
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/75">
-            Advanced Network Practice
-          </p>
-          <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
-            Connect This Lab with Interactive Sandbox
-          </h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-white/90 sm:text-base">
-            Run end-to-end practice by starting in Interactive Sandbox, then continue interception
-            drills in this dedicated network page.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <Link
-              href="/practice#interactive-playground"
-              className="inline-flex items-center rounded-lg bg-[#2563EB] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-px hover:bg-[#1D4ED8] hover:shadow-md"
+              href="/practice/locator-arena"
+              className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-[#93C5FD] hover:shadow-sm"
             >
-              Back to Interactive Sandbox
+              Open Locator Lab
+            </Link>
+            <Link
+              href="/practice/sandbox-basic"
+              className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-[#93C5FD] hover:shadow-sm"
+            >
+              Open Sandbox Basic
+            </Link>
+            <Link
+              href="/practice/sandbox-advanced"
+              className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-[#93C5FD] hover:shadow-sm"
+            >
+              Open Sandbox Advanced
+            </Link>
+            <Link
+              href="/practice/network-mocking"
+              data-testid="network-mocking-link"
+              className="rounded-lg border border-[#93C5FD] bg-[#EFF6FF] px-3 py-2 text-center text-sm font-semibold text-[#1D4ED8] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-[#93C5FD] hover:shadow-sm"
+            >
+              Open Network Lab
             </Link>
             <Link
               href="/practice/table-pagination"
-              className="inline-flex items-center rounded-lg border border-white/50 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-white/10"
+              data-testid="table-pagination-link"
+              className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-center text-sm font-semibold text-[#0F172A] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-px hover:border-[#93C5FD] hover:shadow-sm"
             >
-              Open Table Labs
+              Open Table Lab
             </Link>
           </div>
         </motion.section>
