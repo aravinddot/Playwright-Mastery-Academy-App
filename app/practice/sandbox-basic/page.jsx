@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import PracticePageShell, { revealProps, sectionClass, withDelay } from "../_components/PracticePageShell";
-import { savePracticeModuleProgress } from "../../../lib/practiceProgress";
+import {
+  readPracticeTaskState,
+  savePracticeModuleProgress,
+  writePracticeTaskState
+} from "../../../lib/practiceProgress";
 
 const initialStatus = {
   singleClick: "Waiting for single click.",
@@ -26,6 +30,18 @@ const staticDropdownOptions = [
 ];
 
 const totalSandboxBasicTasks = 9;
+const sandboxBasicPath = "/practice/sandbox-basic";
+const initialTaskState = {
+  singleClick: false,
+  doubleClick: false,
+  hover: false,
+  hoverTooltip: false,
+  staticDropdown: false,
+  form: false,
+  async: false,
+  keyboard: false,
+  readOps: false
+};
 
 function SandboxResult({ label, value, dataTestId, done = false, loading = false }) {
   const stateClass = loading
@@ -76,6 +92,8 @@ export default function SandboxBasicPage() {
   const [keyboardValue, setKeyboardValue] = useState("");
   const [keyboardStatus, setKeyboardStatus] = useState(initialStatus.keyboard);
   const [readOpsStatus, setReadOpsStatus] = useState(initialStatus.readOps);
+  const [taskCompletion, setTaskCompletion] = useState(initialTaskState);
+  const [isTaskStateReady, setIsTaskStateReady] = useState(false);
   const asyncTimerRef = useRef(null);
 
   useEffect(() => {
@@ -85,31 +103,51 @@ export default function SandboxBasicPage() {
   }, []);
 
   useEffect(() => {
-    const completedTasks = [
-      singleClickStatus !== initialStatus.singleClick,
-      doubleClickStatus !== initialStatus.doubleClick,
-      hoverStatus !== initialStatus.hover,
-      hoverTooltipStatus !== initialStatus.hoverTooltip,
-      staticDropdownStatus !== initialStatus.staticDropdown,
-      formStatus !== initialStatus.form,
-      asyncStatus !== initialStatus.async && !isAsyncLoading,
-      keyboardStatus !== initialStatus.keyboard,
-      readOpsStatus !== initialStatus.readOps
-    ].filter(Boolean).length;
+    const storedTaskState = readPracticeTaskState();
+    const persistedModuleState = storedTaskState[sandboxBasicPath];
+    if (persistedModuleState && typeof persistedModuleState === "object") {
+      const hydratedState = {
+        ...initialTaskState,
+        ...persistedModuleState
+      };
+      setTaskCompletion(hydratedState);
 
-    savePracticeModuleProgress("/practice/sandbox-basic", completedTasks, totalSandboxBasicTasks);
+      if (hydratedState.singleClick) setSingleClickStatus("Single click completed.");
+      if (hydratedState.doubleClick) setDoubleClickStatus("Double click completed.");
+      if (hydratedState.hover) setHoverStatus("Hover triggered successfully.");
+      if (hydratedState.hoverTooltip) setHoverTooltipStatus("Tooltip verified successfully.");
+      if (hydratedState.staticDropdown) setStaticDropdownStatus("Static dropdown selected.");
+      if (hydratedState.form) setFormStatus("Practice form submitted.");
+      if (hydratedState.async) setAsyncStatus("Async result loaded successfully.");
+      if (hydratedState.keyboard) setKeyboardStatus("Command submitted.");
+      if (hydratedState.readOps) setReadOpsStatus("Read operation checks completed.");
+    }
+
+    setIsTaskStateReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isTaskStateReady) return;
+    const completedTasks = Object.values(taskCompletion).filter(Boolean).length;
+
+    savePracticeModuleProgress(sandboxBasicPath, completedTasks, totalSandboxBasicTasks);
   }, [
-    singleClickStatus,
-    doubleClickStatus,
-    hoverStatus,
-    hoverTooltipStatus,
-    staticDropdownStatus,
-    formStatus,
-    asyncStatus,
-    isAsyncLoading,
-    keyboardStatus,
-    readOpsStatus
+    isTaskStateReady,
+    taskCompletion
   ]);
+
+  useEffect(() => {
+    if (!isTaskStateReady) return;
+    const storedTaskState = readPracticeTaskState();
+    writePracticeTaskState({
+      ...storedTaskState,
+      [sandboxBasicPath]: taskCompletion
+    });
+  }, [isTaskStateReady, taskCompletion]);
+
+  const markTaskComplete = (taskKey) => {
+    setTaskCompletion((prev) => (prev[taskKey] ? prev : { ...prev, [taskKey]: true }));
+  };
 
   const updateForm = (key, value) => {
     setPracticeForm((prev) => ({ ...prev, [key]: value }));
@@ -118,6 +156,17 @@ export default function SandboxBasicPage() {
   const handleStaticDropdownChange = (value) => {
     setStaticDropdownValue(value);
     setStaticDropdownStatus(value ? `Static dropdown selected: ${value}.` : initialStatus.staticDropdown);
+    if (value) markTaskComplete("staticDropdown");
+  };
+
+  const completeSingleClick = () => {
+    setSingleClickStatus("Single click completed.");
+    markTaskComplete("singleClick");
+  };
+
+  const completeDoubleClick = () => {
+    setDoubleClickStatus("Double click completed.");
+    markTaskComplete("doubleClick");
   };
 
   const submitPracticeForm = (event) => {
@@ -126,6 +175,7 @@ export default function SandboxBasicPage() {
     const submittedEmail = practiceForm.email.trim() || "no-email";
     const submittedTrack = practiceForm.track || "Not selected";
     setFormStatus(`${submittedName} submitted (${submittedEmail}) for ${submittedTrack}.`);
+    markTaskComplete("form");
   };
 
   const triggerAsyncMessage = () => {
@@ -136,6 +186,7 @@ export default function SandboxBasicPage() {
     asyncTimerRef.current = setTimeout(() => {
       setIsAsyncLoading(false);
       setAsyncStatus("Async result loaded successfully.");
+      markTaskComplete("async");
       asyncTimerRef.current = null;
     }, 20000);
   };
@@ -145,6 +196,7 @@ export default function SandboxBasicPage() {
       event.preventDefault();
       const value = keyboardValue.trim() || "Empty command";
       setKeyboardStatus(`Command submitted: ${value}`);
+      markTaskComplete("keyboard");
     }
   };
 
@@ -167,7 +219,7 @@ export default function SandboxBasicPage() {
               <button
                 type="button"
                 data-testid="single-click-btn"
-                onClick={() => setSingleClickStatus("Single click completed.")}
+                onClick={completeSingleClick}
                 className="w-full rounded-lg bg-[#2563EB] px-3 py-2 text-left text-sm font-semibold text-white sm:w-auto sm:text-center"
               >
                 Single Click
@@ -175,7 +227,10 @@ export default function SandboxBasicPage() {
               <button
                 type="button"
                 data-testid="double-click-btn"
-                onDoubleClick={() => setDoubleClickStatus("Double click completed.")}
+                onClick={(event) => {
+                  if (event.detail >= 2) completeDoubleClick();
+                }}
+                onDoubleClick={completeDoubleClick}
                 className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center"
               >
                 Double Click
@@ -184,8 +239,14 @@ export default function SandboxBasicPage() {
                 <button
                   type="button"
                   data-testid="hover-btn"
-                  onMouseEnter={() => setHoverStatus("Hover triggered successfully.")}
-                  onFocus={() => setHoverStatus("Hover triggered successfully.")}
+                  onMouseEnter={() => {
+                    setHoverStatus("Hover triggered successfully.");
+                    markTaskComplete("hover");
+                  }}
+                  onFocus={() => {
+                    setHoverStatus("Hover triggered successfully.");
+                    markTaskComplete("hover");
+                  }}
                   className="w-full rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-left text-sm font-semibold text-[#0F172A] sm:w-auto sm:text-center"
                 >
                   Hover Target
@@ -200,11 +261,13 @@ export default function SandboxBasicPage() {
                   onMouseEnter={() => {
                     setHoverTooltipStatus("Tooltip verified successfully.");
                     setIsHoverTooltipVisible(true);
+                    markTaskComplete("hoverTooltip");
                   }}
                   onMouseLeave={() => setIsHoverTooltipVisible(false)}
                   onFocus={() => {
                     setHoverTooltipStatus("Tooltip verified successfully.");
                     setIsHoverTooltipVisible(true);
+                    markTaskComplete("hoverTooltip");
                   }}
                   onBlur={() => setIsHoverTooltipVisible(false)}
                   className="inline-flex h-9 w-full items-center justify-center rounded-full border border-[#BFDBFE] bg-[#EFF6FF] px-3 text-xs font-bold text-[#1D4ED8] transition-colors duration-200 hover:bg-[#DBEAFE] sm:w-auto"
@@ -228,6 +291,7 @@ export default function SandboxBasicPage() {
                 data-testid="static-practice-select"
                 value={staticDropdownValue}
                 onChange={(event) => handleStaticDropdownChange(event.target.value)}
+                onInput={(event) => handleStaticDropdownChange(event.target.value)}
                 className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm"
               >
                 {staticDropdownOptions.map((option) => (
@@ -242,31 +306,31 @@ export default function SandboxBasicPage() {
                 label="Single"
                 value={singleClickStatus}
                 dataTestId="single-click-status"
-                done={singleClickStatus !== initialStatus.singleClick}
+                done={taskCompletion.singleClick}
               />
               <SandboxResult
                 label="Double"
                 value={doubleClickStatus}
                 dataTestId="double-click-status"
-                done={doubleClickStatus !== initialStatus.doubleClick}
+                done={taskCompletion.doubleClick}
               />
               <SandboxResult
                 label="Hover"
                 value={hoverStatus}
                 dataTestId="hover-status"
-                done={hoverStatus !== initialStatus.hover}
+                done={taskCompletion.hover}
               />
               <SandboxResult
                 label="Tooltip"
                 value={hoverTooltipStatus}
                 dataTestId="hover-tooltip-status"
-                done={hoverTooltipStatus !== initialStatus.hoverTooltip}
+                done={taskCompletion.hoverTooltip}
               />
               <SandboxResult
                 label="Static Dropdown"
                 value={staticDropdownStatus}
                 dataTestId="static-dropdown-status"
-                done={staticDropdownStatus !== initialStatus.staticDropdown}
+                done={taskCompletion.staticDropdown}
               />
             </div>
           </motion.article>
@@ -358,7 +422,7 @@ export default function SandboxBasicPage() {
               label="Form"
               value={formStatus}
               dataTestId="form-status"
-              done={formStatus !== initialStatus.form}
+              done={taskCompletion.form}
             />
           </motion.article>
         </div>
@@ -392,7 +456,7 @@ export default function SandboxBasicPage() {
               label="Async"
               value={asyncStatus}
               dataTestId="async-status"
-              done={asyncStatus !== initialStatus.async}
+              done={taskCompletion.async}
               loading={isAsyncLoading}
             />
 
@@ -411,7 +475,7 @@ export default function SandboxBasicPage() {
               label="Keyboard"
               value={keyboardStatus}
               dataTestId="keyboard-status"
-              done={keyboardStatus !== initialStatus.keyboard}
+              done={taskCompletion.keyboard}
             />
           </motion.article>
 
@@ -468,7 +532,10 @@ export default function SandboxBasicPage() {
             <button
               type="button"
               data-testid="mark-readops-btn"
-              onClick={() => setReadOpsStatus("Read operation checks completed.")}
+              onClick={() => {
+                setReadOpsStatus("Read operation checks completed.");
+                markTaskComplete("readOps");
+              }}
               className="mt-3 rounded-lg bg-[#0B2A4A] px-3 py-2 text-sm font-semibold text-white"
             >
               Mark Read Ops Complete
@@ -478,7 +545,7 @@ export default function SandboxBasicPage() {
               label="Read Ops"
               value={readOpsStatus}
               dataTestId="readops-status"
-              done={readOpsStatus !== initialStatus.readOps}
+              done={taskCompletion.readOps}
             />
           </motion.article>
         </div>

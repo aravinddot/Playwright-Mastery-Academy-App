@@ -768,7 +768,7 @@ const practiceModulePaths = practiceModuleCards.map((module) => module.href);
 const moduleTaskPlan = {
   "/practice/locator-arena": 4,
   "/practice/sandbox-basic": 9,
-  "/practice/sandbox-advanced": 7,
+  "/practice/sandbox-advanced": 12,
   "/practice/network-mocking": 4,
   "/practice/table-pagination": 3
 };
@@ -1558,10 +1558,15 @@ export default function PracticePage() {
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <span className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-[#DBEAFE]">
-                  Drill Library: {practiceItems.length}
+                  Locator Practice Arena: {normalizedModuleProgress["/practice/locator-arena"]?.completedTasks}/
+                  {normalizedModuleProgress["/practice/locator-arena"]?.totalTasks} tasks
                 </span>
                 <span className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-[#DBEAFE]">
-                  Filtered View: {filteredItems.length}
+                  Sandbox Basic: {normalizedModuleProgress["/practice/sandbox-basic"]?.completedTasks}/
+                  {normalizedModuleProgress["/practice/sandbox-basic"]?.totalTasks} tasks
+                </span>
+                <span className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-[#DBEAFE]">
+                  Drill Library: {practiceItems.length}
                 </span>
               </div>
               <div className="mt-4">

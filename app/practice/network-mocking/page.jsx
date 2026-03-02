@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { savePracticeModuleProgress } from "../../../lib/practiceProgress";
+import {
+  readPracticeTaskState,
+  savePracticeModuleProgress,
+  writePracticeTaskState
+} from "../../../lib/practiceProgress";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -40,6 +44,13 @@ const initialStatus = {
 };
 
 const totalNetworkTasks = 4;
+const networkMockingPath = "/practice/network-mocking";
+const initialTaskState = {
+  profile: false,
+  continueMode: false,
+  flags: false,
+  orders: false
+};
 
 const formatJson = (value) => JSON.stringify(value, null, 2);
 
@@ -82,17 +93,40 @@ export default function NetworkMockingPage() {
   const [continueData, setContinueData] = useState(null);
   const [flagsData, setFlagsData] = useState(null);
   const [ordersData, setOrdersData] = useState(null);
+  const [taskCompletion, setTaskCompletion] = useState(initialTaskState);
+  const [isTaskStateReady, setIsTaskStateReady] = useState(false);
 
   useEffect(() => {
-    const completedTasks = [
-      profileStatus !== initialStatus.profile && !profileStatus.includes("Loading"),
-      continueStatus !== initialStatus.continueMode && !continueStatus.includes("Sending"),
-      flagsStatus !== initialStatus.flags && !flagsStatus.includes("Loading"),
-      ordersStatus !== initialStatus.orders && !ordersStatus.includes("Loading")
-    ].filter(Boolean).length;
+    const storedTaskState = readPracticeTaskState();
+    const persistedModuleState = storedTaskState[networkMockingPath];
+    if (persistedModuleState && typeof persistedModuleState === "object") {
+      const hydratedState = { ...initialTaskState, ...persistedModuleState };
+      setTaskCompletion(hydratedState);
 
-    savePracticeModuleProgress("/practice/network-mocking", completedTasks, totalNetworkTasks);
-  }, [profileStatus, continueStatus, flagsStatus, ordersStatus]);
+      if (hydratedState.profile) setProfileStatus("Profile endpoint workflow completed.");
+      if (hydratedState.continueMode) setContinueStatus("route.continue workflow completed.");
+      if (hydratedState.flags) setFlagsStatus("route.fulfill workflow completed.");
+      if (hydratedState.orders) setOrdersStatus("Orders endpoint workflow completed.");
+    }
+    setIsTaskStateReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isTaskStateReady) return;
+
+    const completedTasks = Object.values(taskCompletion).filter(Boolean).length;
+    savePracticeModuleProgress(networkMockingPath, completedTasks, totalNetworkTasks);
+
+    const storedTaskState = readPracticeTaskState();
+    writePracticeTaskState({
+      ...storedTaskState,
+      [networkMockingPath]: taskCompletion
+    });
+  }, [isTaskStateReady, taskCompletion]);
+
+  const markTaskComplete = (taskKey) => {
+    setTaskCompletion((prev) => (prev[taskKey] ? prev : { ...prev, [taskKey]: true }));
+  };
 
   const loadLiveProfile = async () => {
     setProfileStatus("Loading profile endpoint...");
@@ -107,8 +141,10 @@ export default function NetworkMockingPage() {
       const data = await response.json();
       setProfileData(data);
       setProfileStatus(`Profile loaded from ${data.source}.`);
+      markTaskComplete("profile");
     } catch {
       setProfileStatus("Profile request failed.");
+      markTaskComplete("profile");
     }
   };
 
@@ -125,8 +161,10 @@ export default function NetworkMockingPage() {
       const data = await response.json();
       setContinueData(data);
       setContinueStatus(`Intercept source received: ${data.interceptSource}.`);
+      markTaskComplete("continueMode");
     } catch {
       setContinueStatus("route.continue practice request failed.");
+      markTaskComplete("continueMode");
     }
   };
 
@@ -138,8 +176,10 @@ export default function NetworkMockingPage() {
       const data = await response.json();
       setFlagsData(data);
       setFlagsStatus(`Flags loaded from ${data.source}.`);
+      markTaskComplete("flags");
     } catch {
       setFlagsStatus("Flags request failed.");
+      markTaskComplete("flags");
     }
   };
 
@@ -163,12 +203,15 @@ export default function NetworkMockingPage() {
 
       if (!response.ok) {
         setOrdersStatus(`Orders request failed with status ${response.status}.`);
+        markTaskComplete("orders");
         return;
       }
 
       setOrdersStatus(`Orders loaded: ${(data.orders || []).length} records.`);
+      markTaskComplete("orders");
     } catch {
       setOrdersStatus("Orders request failed.");
+      markTaskComplete("orders");
     }
   };
 
@@ -366,7 +409,7 @@ export default function NetworkMockingPage() {
                 label="Profile"
                 value={profileStatus}
                 testId="net-profile-status"
-                done={profileStatus !== initialStatus.profile && !profileStatus.includes("Loading")}
+                done={taskCompletion.profile}
               />
               <pre
                 data-testid="net-profile-json"
@@ -396,10 +439,7 @@ export default function NetworkMockingPage() {
                 label="Continue"
                 value={continueStatus}
                 testId="net-continue-status"
-                done={
-                  continueStatus !== initialStatus.continueMode &&
-                  !continueStatus.includes("Sending")
-                }
+                done={taskCompletion.continueMode}
               />
               <div
                 data-testid="net-continue-source"
@@ -432,7 +472,7 @@ export default function NetworkMockingPage() {
                 label="Flags"
                 value={flagsStatus}
                 testId="net-flags-status"
-                done={flagsStatus !== initialStatus.flags && !flagsStatus.includes("Loading")}
+                done={taskCompletion.flags}
               />
               <p
                 data-testid="net-flags-source"
@@ -493,7 +533,7 @@ export default function NetworkMockingPage() {
                 label="Orders"
                 value={ordersStatus}
                 testId="net-orders-status"
-                done={ordersStatus !== initialStatus.orders && !ordersStatus.includes("Loading")}
+                done={taskCompletion.orders}
               />
               <pre
                 data-testid="net-orders-json"
@@ -502,6 +542,7 @@ export default function NetworkMockingPage() {
                 <code>{formatJson(ordersData || { orders: "No response yet" })}</code>
               </pre>
             </motion.article>
+
           </div>
         </motion.section>
 

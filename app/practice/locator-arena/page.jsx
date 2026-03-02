@@ -4,22 +4,56 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import PracticePageShell, { revealProps, sectionClass, withDelay } from "../_components/PracticePageShell";
-import { savePracticeModuleProgress } from "../../../lib/practiceProgress";
+import {
+  readPracticeTaskState,
+  savePracticeModuleProgress,
+  writePracticeTaskState
+} from "../../../lib/practiceProgress";
 
 const initialLocatorChainStatus = "No filter/chaining action executed.";
 const totalLocatorTasks = 4;
+const locatorArenaPath = "/practice/locator-arena";
+const initialTaskState = {
+  easy: false,
+  medium: false,
+  hard: false,
+  filterChain: false
+};
 
 export default function LocatorArenaPage() {
   const [locatorChainStatus, setLocatorChainStatus] = useState(initialLocatorChainStatus);
-  const [easyTaskDone, setEasyTaskDone] = useState(false);
-  const [mediumTaskDone, setMediumTaskDone] = useState(false);
-  const [hardTaskDone, setHardTaskDone] = useState(false);
-  const [filterChainTaskDone, setFilterChainTaskDone] = useState(false);
+  const [taskCompletion, setTaskCompletion] = useState(initialTaskState);
+  const [isTaskStateReady, setIsTaskStateReady] = useState(false);
 
   useEffect(() => {
-    const completedTasks = [easyTaskDone, mediumTaskDone, hardTaskDone, filterChainTaskDone].filter(Boolean).length;
-    savePracticeModuleProgress("/practice/locator-arena", completedTasks, totalLocatorTasks);
-  }, [easyTaskDone, mediumTaskDone, hardTaskDone, filterChainTaskDone]);
+    const storedTaskState = readPracticeTaskState();
+    const persistedModuleState = storedTaskState[locatorArenaPath];
+    if (persistedModuleState && typeof persistedModuleState === "object") {
+      const hydratedState = { ...initialTaskState, ...persistedModuleState };
+      setTaskCompletion(hydratedState);
+      if (hydratedState.filterChain) {
+        setLocatorChainStatus("Filter/chaining workflow completed.");
+      }
+    }
+    setIsTaskStateReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isTaskStateReady) return;
+
+    const completedTasks = Object.values(taskCompletion).filter(Boolean).length;
+    savePracticeModuleProgress(locatorArenaPath, completedTasks, totalLocatorTasks);
+
+    const storedTaskState = readPracticeTaskState();
+    writePracticeTaskState({
+      ...storedTaskState,
+      [locatorArenaPath]: taskCompletion
+    });
+  }, [isTaskStateReady, taskCompletion]);
+
+  const markTaskComplete = (taskKey) => {
+    setTaskCompletion((prev) => (prev[taskKey] ? prev : { ...prev, [taskKey]: true }));
+  };
 
   return (
     <PracticePageShell
@@ -51,15 +85,15 @@ export default function LocatorArenaPage() {
             </div>
             <div
               className="mt-4 space-y-3"
-              onClickCapture={() => setEasyTaskDone(true)}
-              onInputCapture={() => setEasyTaskDone(true)}
-              onChangeCapture={() => setEasyTaskDone(true)}
+              onClickCapture={() => markTaskComplete("easy")}
+              onInputCapture={() => markTaskComplete("easy")}
+              onChangeCapture={() => markTaskComplete("easy")}
             >
               <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
                 <button
                   type="button"
                   data-testid="easy-btn-start"
-                  onClick={() => setEasyTaskDone(true)}
+                  onClick={() => markTaskComplete("easy")}
                   className="locator-easy-btn rounded-md bg-[#2563EB] px-3 py-2 text-sm font-semibold text-white"
                 >
                   Start Practice
@@ -125,9 +159,9 @@ export default function LocatorArenaPage() {
             </div>
             <div
               className="mt-4 space-y-3"
-              onClickCapture={() => setMediumTaskDone(true)}
-              onInputCapture={() => setMediumTaskDone(true)}
-              onChangeCapture={() => setMediumTaskDone(true)}
+              onClickCapture={() => markTaskComplete("medium")}
+              onInputCapture={() => markTaskComplete("medium")}
+              onChangeCapture={() => markTaskComplete("medium")}
             >
               <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
                 <label htmlFor="medium-browser" className="mb-1 block text-xs font-semibold text-[#334155]">
@@ -160,7 +194,7 @@ export default function LocatorArenaPage() {
                   type="button"
                   title="Refresh scenarios list"
                   data-testid="medium-refresh-btn"
-                  onClick={() => setMediumTaskDone(true)}
+                  onClick={() => markTaskComplete("medium")}
                   className="rounded-md border border-[#BFDBFE] px-3 py-2 text-sm font-semibold text-[#1D4ED8]"
                 >
                   Refresh Scenarios
@@ -204,9 +238,9 @@ export default function LocatorArenaPage() {
             </div>
             <div
               className="mt-4 space-y-3"
-              onClickCapture={() => setHardTaskDone(true)}
-              onInputCapture={() => setHardTaskDone(true)}
-              onChangeCapture={() => setHardTaskDone(true)}
+              onClickCapture={() => markTaskComplete("hard")}
+              onInputCapture={() => markTaskComplete("hard")}
+              onChangeCapture={() => markTaskComplete("hard")}
             >
               <div className="overflow-x-auto rounded-lg border border-[#E2E8F0] bg-white p-3">
                 <table data-testid="hard-table" className="w-full min-w-[300px] text-left text-xs">
@@ -278,7 +312,7 @@ export default function LocatorArenaPage() {
                   type="button"
                   aria-label="Launch final check"
                   data-testid="hard-final-btn"
-                  onClick={() => setHardTaskDone(true)}
+                  onClick={() => markTaskComplete("hard")}
                   className="rounded-md bg-[#0B2A4A] px-3 py-2 text-sm font-semibold text-white"
                 >
                   Launch Final Check
@@ -320,7 +354,7 @@ export default function LocatorArenaPage() {
                       data-testid="filter-open-btn"
                       onClick={() => {
                         setLocatorChainStatus(`Filter open clicked: ${item.level} - ${item.module}`);
-                        setFilterChainTaskDone(true);
+                        markTaskComplete("filterChain");
                       }}
                       className="rounded-md border border-[#BFDBFE] px-2.5 py-1.5 text-xs font-semibold text-[#1D4ED8]"
                     >
@@ -361,7 +395,7 @@ export default function LocatorArenaPage() {
                       data-testid="chain-run-btn"
                       onClick={() => {
                         setLocatorChainStatus(`Chaining run clicked: ${card.title}`);
-                        setFilterChainTaskDone(true);
+                        markTaskComplete("filterChain");
                       }}
                       className="rounded-md bg-[#0B2A4A] px-2.5 py-1.5 text-xs font-semibold text-white"
                     >

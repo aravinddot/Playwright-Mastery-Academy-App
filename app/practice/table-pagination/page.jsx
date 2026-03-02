@@ -4,7 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { savePracticeModuleProgress } from "../../../lib/practiceProgress";
+import {
+  readPracticeTaskState,
+  savePracticeModuleProgress,
+  writePracticeTaskState
+} from "../../../lib/practiceProgress";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -75,6 +79,12 @@ const sectionClass =
   "relative overflow-hidden rounded-2xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F9FBFF_100%)] p-6 shadow-[0_22px_48px_-30px_rgba(11,42,74,0.45)] sm:p-8";
 
 const totalTableLabTasks = 3;
+const tablePaginationPath = "/practice/table-pagination";
+const initialTaskState = {
+  filter: false,
+  sort: false,
+  pagination: false
+};
 
 function buildRows(total = 3200) {
   return Array.from({ length: total }, (_, index) => {
@@ -122,6 +132,17 @@ export default function TablePaginationPracticePage() {
   const [sortBy, setSortBy] = useState("id-asc");
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
+  const [taskCompletion, setTaskCompletion] = useState(initialTaskState);
+  const [isTaskStateReady, setIsTaskStateReady] = useState(false);
+
+  useEffect(() => {
+    const storedTaskState = readPracticeTaskState();
+    const persistedModuleState = storedTaskState[tablePaginationPath];
+    if (persistedModuleState && typeof persistedModuleState === "object") {
+      setTaskCompletion({ ...initialTaskState, ...persistedModuleState });
+    }
+    setIsTaskStateReady(true);
+  }, []);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -174,6 +195,8 @@ export default function TablePaginationPracticePage() {
   }, [currentPage, totalPages]);
 
   useEffect(() => {
+    if (!isTaskStateReady) return;
+
     const filterTaskDone =
       search.trim().length > 0 ||
       roleFilter !== "All" ||
@@ -182,10 +205,26 @@ export default function TablePaginationPracticePage() {
       experienceFilter !== "All";
     const sortTaskDone = sortBy !== "id-asc";
     const paginationTaskDone = currentPage > 1 || pageSize !== 25;
-    const completedTasks = [filterTaskDone, sortTaskDone, paginationTaskDone].filter(Boolean).length;
 
-    savePracticeModuleProgress("/practice/table-pagination", completedTasks, totalTableLabTasks);
+    setTaskCompletion((prev) => {
+      const next = {
+        filter: prev.filter || filterTaskDone,
+        sort: prev.sort || sortTaskDone,
+        pagination: prev.pagination || paginationTaskDone
+      };
+
+      if (
+        next.filter === prev.filter &&
+        next.sort === prev.sort &&
+        next.pagination === prev.pagination
+      ) {
+        return prev;
+      }
+
+      return next;
+    });
   }, [
+    isTaskStateReady,
     search,
     roleFilter,
     statusFilter,
@@ -195,6 +234,19 @@ export default function TablePaginationPracticePage() {
     currentPage,
     pageSize
   ]);
+
+  useEffect(() => {
+    if (!isTaskStateReady) return;
+
+    const completedTasks = Object.values(taskCompletion).filter(Boolean).length;
+    savePracticeModuleProgress(tablePaginationPath, completedTasks, totalTableLabTasks);
+
+    const storedTaskState = readPracticeTaskState();
+    writePracticeTaskState({
+      ...storedTaskState,
+      [tablePaginationPath]: taskCompletion
+    });
+  }, [isTaskStateReady, taskCompletion]);
 
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, sortedRows.length);

@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import PracticePageShell, { revealProps, sectionClass, withDelay } from "../_components/PracticePageShell";
-import { savePracticeModuleProgress } from "../../../lib/practiceProgress";
+import {
+  readPracticeTaskState,
+  savePracticeModuleProgress,
+  writePracticeTaskState
+} from "../../../lib/practiceProgress";
 
 const cardClass =
   "rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]";
@@ -39,7 +43,22 @@ const initialStatus = {
   wait: "Wait command checks not started."
 };
 
-const totalSandboxAdvancedTasks = 7;
+const totalSandboxAdvancedTasks = 12;
+const sandboxAdvancedPath = "/practice/sandbox-advanced";
+const initialTaskState = {
+  dynamic: false,
+  dropdown: false,
+  alertDialog: false,
+  confirmDialog: false,
+  promptDialog: false,
+  popupTab: false,
+  drop: false,
+  upload: false,
+  download: false,
+  wait: false,
+  practiceDate: false,
+  interviewDate: false
+};
 
 function StatusLine({ label, value, testId, state = "idle" }) {
   const stateClass = {
@@ -81,6 +100,8 @@ export default function SandboxAdvancedPage() {
   const [waitStatus, setWaitStatus] = useState(initialStatus.wait);
   const [locatorWaitVisible, setLocatorWaitVisible] = useState(false);
   const [selectorWaitVisible, setSelectorWaitVisible] = useState(false);
+  const [taskCompletion, setTaskCompletion] = useState(initialTaskState);
+  const [isTaskStateReady, setIsTaskStateReady] = useState(false);
 
   const locatorWaitTimerRef = useRef(null);
   const selectorWaitTimerRef = useRef(null);
@@ -114,38 +135,67 @@ export default function SandboxAdvancedPage() {
   }, []);
 
   useEffect(() => {
-    const waitText = waitStatus.toLowerCase();
-    const waitPending =
-      waitStatus === initialStatus.wait ||
-      waitText.includes("in progress") ||
-      waitText.includes("scheduled") ||
-      waitStatus === "Triggering locator wait target..." ||
-      waitStatus === "Triggering selector wait target...";
+    const storedTaskState = readPracticeTaskState();
+    const persistedModuleState = storedTaskState[sandboxAdvancedPath];
+    if (persistedModuleState && typeof persistedModuleState === "object") {
+      const hydratedState = {
+        dynamic: Boolean(persistedModuleState.dynamic),
+        dropdown: Boolean(persistedModuleState.dropdown),
+        // backward compatibility: old `dialog` task implies these 3 dialog actions.
+        alertDialog: Boolean(persistedModuleState.alertDialog || persistedModuleState.dialog),
+        confirmDialog: Boolean(persistedModuleState.confirmDialog || persistedModuleState.dialog),
+        promptDialog: Boolean(persistedModuleState.promptDialog || persistedModuleState.dialog),
+        popupTab: Boolean(persistedModuleState.popupTab),
+        drop: Boolean(persistedModuleState.drop),
+        upload: Boolean(persistedModuleState.upload),
+        download: Boolean(persistedModuleState.download),
+        wait: Boolean(persistedModuleState.wait),
+        practiceDate: Boolean(persistedModuleState.practiceDate),
+        interviewDate: Boolean(persistedModuleState.interviewDate)
+      };
+      setTaskCompletion(hydratedState);
 
-    const completedTasks = [
-      dynamicStatus !== initialStatus.dynamic,
-      dropdownStatus !== initialStatus.dropdown,
-      dialogStatus !== initialStatus.dialog,
-      dropStatus !== initialStatus.drop,
-      uploadStatus !== initialStatus.upload,
-      downloadStatus !== initialStatus.download,
-      !waitPending
-    ].filter(Boolean).length;
+      if (hydratedState.dynamic) setDynamicStatus("Dynamic dropdown workflow completed.");
+      if (hydratedState.dropdown) setDropdownStatus("Dropdown workflow completed.");
+      if (hydratedState.alertDialog || hydratedState.confirmDialog || hydratedState.promptDialog) {
+        setDialogStatus("Dialog workflow started.");
+      }
+      if (
+        hydratedState.alertDialog &&
+        hydratedState.confirmDialog &&
+        hydratedState.promptDialog &&
+        hydratedState.popupTab
+      ) {
+        setDialogStatus("Dialog and popup workflow completed.");
+      }
+      if (hydratedState.drop) setDropStatus("Drop workflow completed.");
+      if (hydratedState.upload) setUploadStatus("Upload workflow completed.");
+      if (hydratedState.download) setDownloadStatus("Download workflow completed.");
+      if (hydratedState.wait) setWaitStatus("Wait command workflow completed.");
+    }
+    setIsTaskStateReady(true);
+  }, []);
 
+  useEffect(() => {
+    if (!isTaskStateReady) return;
+
+    const completedTasks = Object.values(taskCompletion).filter(Boolean).length;
     savePracticeModuleProgress(
-      "/practice/sandbox-advanced",
+      sandboxAdvancedPath,
       completedTasks,
       totalSandboxAdvancedTasks
     );
-  }, [
-    dynamicStatus,
-    dropdownStatus,
-    dialogStatus,
-    dropStatus,
-    uploadStatus,
-    downloadStatus,
-    waitStatus
-  ]);
+
+    const storedTaskState = readPracticeTaskState();
+    writePracticeTaskState({
+      ...storedTaskState,
+      [sandboxAdvancedPath]: taskCompletion
+    });
+  }, [isTaskStateReady, taskCompletion]);
+
+  const markTaskComplete = (taskKey) => {
+    setTaskCompletion((prev) => (prev[taskKey] ? prev : { ...prev, [taskKey]: true }));
+  };
 
   const getDelay = () => 5000 + Math.floor(Math.random() * 5001);
   const toSeconds = (ms) => (ms / 1000).toFixed(1);
@@ -164,6 +214,7 @@ export default function SandboxAdvancedPage() {
     }
     const optionLabel = dynamicOptions[dynamicGroupValue]?.find((item) => item.value === value)?.label || value;
     setDynamicStatus(`Dynamic dropdown selected: ${optionLabel}.`);
+    markTaskComplete("dynamic");
   };
 
   const onDragStart = (event) => event.dataTransfer.setData("text/plain", "playwright-drag-item");
@@ -175,6 +226,7 @@ export default function SandboxAdvancedPage() {
         ? "Drop completed successfully."
         : "Dropped item did not match expected payload."
     );
+    markTaskComplete("drop");
   };
 
   const handleDownload = (type) => {
@@ -196,6 +248,7 @@ export default function SandboxAdvancedPage() {
     anchor.remove();
     URL.revokeObjectURL(href);
     setDownloadStatus(`${file.name} download started.`);
+    markTaskComplete("download");
   };
 
   const triggerWaitResponse = async () => {
@@ -204,8 +257,10 @@ export default function SandboxAdvancedPage() {
       const response = await fetch("/api/practice/waits-status", { cache: "no-store" });
       const data = await response.json();
       setWaitStatus(`API responded with ${response.status}: ${data.status} after ${toSeconds(data.delayMs || 0)}s.`);
+      markTaskComplete("wait");
     } catch {
       setWaitStatus("API request failed.");
+      markTaskComplete("wait");
     }
   };
 
@@ -213,6 +268,7 @@ export default function SandboxAdvancedPage() {
     if (waitUrlTimerRef.current) clearTimeout(waitUrlTimerRef.current);
     const delay = getDelay();
     setWaitStatus(`URL update scheduled (${toSeconds(delay)}s)...`);
+    markTaskComplete("wait");
     waitUrlTimerRef.current = setTimeout(() => {
       window.history.replaceState({}, "", "/practice/sandbox-advanced?wait=ready#sandbox-advanced");
       setWaitStatus(`URL changed to ?wait=ready after ${toSeconds(delay)}s.`);
@@ -224,6 +280,7 @@ export default function SandboxAdvancedPage() {
     if (waitReloadTimerRef.current) clearTimeout(waitReloadTimerRef.current);
     const delay = getDelay();
     setWaitStatus(`Reload scheduled (${toSeconds(delay)}s)...`);
+    markTaskComplete("wait");
     waitReloadTimerRef.current = setTimeout(() => {
       window.location.assign("/practice/sandbox-advanced?loadstate=ready#sandbox-advanced");
       waitReloadTimerRef.current = null;
@@ -237,6 +294,7 @@ export default function SandboxAdvancedPage() {
     if (!href) return;
     const delay = getDelay();
     setWaitStatus(`Navigation scheduled (${toSeconds(delay)}s)...`);
+    markTaskComplete("wait");
     waitNavigationTimerRef.current = setTimeout(() => {
       window.location.assign(href);
       waitNavigationTimerRef.current = null;
@@ -247,6 +305,7 @@ export default function SandboxAdvancedPage() {
     if (locatorWaitTimerRef.current) clearTimeout(locatorWaitTimerRef.current);
     setLocatorWaitVisible(false);
     setWaitStatus("Triggering locator wait target...");
+    markTaskComplete("wait");
     locatorWaitTimerRef.current = setTimeout(() => {
       setLocatorWaitVisible(true);
       setWaitStatus("Locator wait target is now visible.");
@@ -258,6 +317,7 @@ export default function SandboxAdvancedPage() {
     if (selectorWaitTimerRef.current) clearTimeout(selectorWaitTimerRef.current);
     setSelectorWaitVisible(false);
     setWaitStatus("Triggering selector wait target...");
+    markTaskComplete("wait");
     selectorWaitTimerRef.current = setTimeout(() => {
       setSelectorWaitVisible(true);
       setWaitStatus("Selector wait target is now visible.");
@@ -303,7 +363,7 @@ export default function SandboxAdvancedPage() {
               <div data-testid="hidden-dropdown-container" className={`mt-2 ${isHiddenDropdownVisible ? "block" : "hidden"}`}>
                 <label className="block text-xs font-semibold text-[#475569]">
                   Hidden Dropdown Menu
-                  <select data-testid="hidden-dropdown-select" value={hiddenDropdownValue} onChange={(event) => { setHiddenDropdownValue(event.target.value); setDropdownStatus(event.target.value ? `Hidden dropdown selected: ${event.target.value}.` : initialStatus.dropdown); }} className="mt-1.5 w-full rounded-md border border-[#CBD5E1] bg-white px-2.5 py-2 text-sm">
+                  <select data-testid="hidden-dropdown-select" value={hiddenDropdownValue} onChange={(event) => { setHiddenDropdownValue(event.target.value); setDropdownStatus(event.target.value ? `Hidden dropdown selected: ${event.target.value}.` : initialStatus.dropdown); if (event.target.value) markTaskComplete("dropdown"); }} className="mt-1.5 w-full rounded-md border border-[#CBD5E1] bg-white px-2.5 py-2 text-sm">
                     <option value="">Select hidden option</option>
                     <option value="Hidden - Core">Hidden - Core</option>
                     <option value="Hidden - Advanced">Hidden - Advanced</option>
@@ -320,16 +380,16 @@ export default function SandboxAdvancedPage() {
               </button>
               {isBootstrapDropdownOpen ? (
                 <div id="bootstrap-dropdown-menu" data-testid="bootstrap-dropdown-menu" className="absolute left-3 right-3 top-[calc(100%-2px)] z-20 rounded-md border border-[#CBD5E1] bg-white p-1 shadow-lg">
-                  <button type="button" data-testid="bootstrap-dropdown-item-weekday" onClick={() => { setBootstrapDropdownValue("Weekday Batch"); setIsBootstrapDropdownOpen(false); setDropdownStatus("Bootstrap dropdown selected: Weekday Batch."); }} className="block w-full rounded px-2 py-1.5 text-left text-sm text-[#334155] hover:bg-[#EFF6FF]">Weekday Batch</button>
-                  <button type="button" data-testid="bootstrap-dropdown-item-weekend" onClick={() => { setBootstrapDropdownValue("Weekend Batch"); setIsBootstrapDropdownOpen(false); setDropdownStatus("Bootstrap dropdown selected: Weekend Batch."); }} className="block w-full rounded px-2 py-1.5 text-left text-sm text-[#334155] hover:bg-[#EFF6FF]">Weekend Batch</button>
-                  <button type="button" data-testid="bootstrap-dropdown-item-fasttrack" onClick={() => { setBootstrapDropdownValue("Fast Track Batch"); setIsBootstrapDropdownOpen(false); setDropdownStatus("Bootstrap dropdown selected: Fast Track Batch."); }} className="block w-full rounded px-2 py-1.5 text-left text-sm text-[#334155] hover:bg-[#EFF6FF]">Fast Track Batch</button>
+                  <button type="button" data-testid="bootstrap-dropdown-item-weekday" onClick={() => { setBootstrapDropdownValue("Weekday Batch"); setIsBootstrapDropdownOpen(false); setDropdownStatus("Bootstrap dropdown selected: Weekday Batch."); markTaskComplete("dropdown"); }} className="block w-full rounded px-2 py-1.5 text-left text-sm text-[#334155] hover:bg-[#EFF6FF]">Weekday Batch</button>
+                  <button type="button" data-testid="bootstrap-dropdown-item-weekend" onClick={() => { setBootstrapDropdownValue("Weekend Batch"); setIsBootstrapDropdownOpen(false); setDropdownStatus("Bootstrap dropdown selected: Weekend Batch."); markTaskComplete("dropdown"); }} className="block w-full rounded px-2 py-1.5 text-left text-sm text-[#334155] hover:bg-[#EFF6FF]">Weekend Batch</button>
+                  <button type="button" data-testid="bootstrap-dropdown-item-fasttrack" onClick={() => { setBootstrapDropdownValue("Fast Track Batch"); setIsBootstrapDropdownOpen(false); setDropdownStatus("Bootstrap dropdown selected: Fast Track Batch."); markTaskComplete("dropdown"); }} className="block w-full rounded px-2 py-1.5 text-left text-sm text-[#334155] hover:bg-[#EFF6FF]">Fast Track Batch</button>
                 </div>
               ) : null}
               <p data-testid="bootstrap-dropdown-value" className="mt-2 text-xs font-medium text-[#64748B]">{bootstrapDropdownValue ? `Selected: ${bootstrapDropdownValue}` : "No bootstrap option selected."}</p>
             </div>
           </div>
-          <StatusLine label="Dynamic Dropdown" value={dynamicStatus} testId="dynamic-dropdown-status" state={dynamicStatus !== initialStatus.dynamic ? "done" : "idle"} />
-          <StatusLine label="Dropdown" value={dropdownStatus} testId="table-status" state={dropdownStatus !== initialStatus.dropdown ? "done" : "idle"} />
+          <StatusLine label="Dynamic Dropdown" value={dynamicStatus} testId="dynamic-dropdown-status" state={taskCompletion.dynamic ? "done" : "idle"} />
+          <StatusLine label="Dropdown" value={dropdownStatus} testId="table-status" state={taskCompletion.dropdown ? "done" : "idle"} />
         </motion.article>
       </motion.section>
 
@@ -337,12 +397,12 @@ export default function SandboxAdvancedPage() {
         <motion.article {...withDelay(0.05)} className={cardClass}>
           <h3 className="text-lg font-bold text-[#0F172A]">Dialogs and Popup</h3>
           <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
-            <button type="button" data-testid="alert-btn" onClick={() => { window.alert("Playwright alert practice."); setDialogStatus("Alert handled."); }} className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Trigger Alert</button>
-            <button type="button" data-testid="confirm-btn" onClick={() => setDialogStatus(window.confirm("Do you want to confirm this action?") ? "Confirm accepted." : "Confirm dismissed.")} className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Trigger Confirm</button>
-            <button type="button" data-testid="prompt-btn" onClick={() => { const value = window.prompt("Enter learner batch name", "Batch-01"); setDialogStatus(value ? `Prompt value: ${value}` : "Prompt cancelled."); }} className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Trigger Prompt</button>
+            <button type="button" data-testid="alert-btn" onClick={() => { window.alert("Playwright alert practice."); setDialogStatus("Alert handled."); markTaskComplete("alertDialog"); }} className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Trigger Alert</button>
+            <button type="button" data-testid="confirm-btn" onClick={() => { setDialogStatus(window.confirm("Do you want to confirm this action?") ? "Confirm accepted." : "Confirm dismissed."); markTaskComplete("confirmDialog"); }} className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Trigger Confirm</button>
+            <button type="button" data-testid="prompt-btn" onClick={() => { const value = window.prompt("Enter learner batch name", "Batch-01"); setDialogStatus(value ? `Prompt value: ${value}` : "Prompt cancelled."); markTaskComplete("promptDialog"); }} className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Trigger Prompt</button>
           </div>
-          <StatusLine label="Dialog" value={dialogStatus} testId="dialog-status" state={dialogStatus !== initialStatus.dialog ? "done" : "idle"} />
-          <a href="/practice/popup" target="_blank" rel="noopener noreferrer" data-testid="popup-link" className="mt-3 inline-flex text-sm font-semibold text-[#2563EB] underline underline-offset-4">Open popup tab</a>
+          <StatusLine label="Dialog" value={dialogStatus} testId="dialog-status" state={taskCompletion.alertDialog && taskCompletion.confirmDialog && taskCompletion.promptDialog && taskCompletion.popupTab ? "done" : "idle"} />
+          <a href="/practice/popup" target="_blank" rel="noopener noreferrer" data-testid="popup-link" onClick={() => { setDialogStatus("Popup tab opened."); markTaskComplete("popupTab"); }} className="mt-3 inline-flex text-sm font-semibold text-[#2563EB] underline underline-offset-4">Open popup tab</a>
         </motion.article>
       </motion.section>
 
@@ -353,18 +413,18 @@ export default function SandboxAdvancedPage() {
             <div draggable data-testid="drag-source" onDragStart={onDragStart} className="cursor-move rounded-lg border border-dashed border-[#93C5FD] bg-white px-3 py-4 text-center text-sm font-semibold text-[#1D4ED8]">Drag this card</div>
             <div data-testid="drop-target" onDragOver={(event) => event.preventDefault()} onDrop={onDrop} className="rounded-lg border border-dashed border-[#CBD5E1] bg-white px-3 py-4 text-center text-sm font-semibold text-[#334155]">Drop target</div>
           </div>
-          <StatusLine label="Drop" value={dropStatus} testId="drop-status" state={dropStatus !== initialStatus.drop ? "done" : "idle"} />
+          <StatusLine label="Drop" value={dropStatus} testId="drop-status" state={taskCompletion.drop ? "done" : "idle"} />
           <label className="mt-4 block text-sm font-semibold text-[#334155]">Upload file
-            <input data-testid="file-upload-input" type="file" accept=".pdf,.csv,.xml,.txt,text/plain,application/pdf,text/csv,application/xml,text/xml" onChange={(event) => { const file = event.target.files?.[0]; if (!file) { setUploadStatus(initialStatus.upload); return; } const valid = [".pdf", ".csv", ".xml", ".txt"].some((ext) => file.name.toLowerCase().endsWith(ext)); if (!valid) { setUploadStatus("Invalid file type. Upload PDF, CSV, XML, or TXT only."); event.target.value = ""; return; } setUploadStatus(`${file.name} uploaded successfully.`); }} className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm" />
+            <input data-testid="file-upload-input" type="file" accept=".pdf,.csv,.xml,.txt,text/plain,application/pdf,text/csv,application/xml,text/xml" onChange={(event) => { const file = event.target.files?.[0]; if (!file) { setUploadStatus(initialStatus.upload); return; } const valid = [".pdf", ".csv", ".xml", ".txt"].some((ext) => file.name.toLowerCase().endsWith(ext)); if (!valid) { setUploadStatus("Invalid file type. Upload PDF, CSV, XML, or TXT only."); event.target.value = ""; return; } setUploadStatus(`${file.name} uploaded successfully.`); markTaskComplete("upload"); }} className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm" />
           </label>
-          <StatusLine label="Upload" value={uploadStatus} testId="upload-status" state={uploadStatus !== initialStatus.upload ? "done" : "idle"} />
+          <StatusLine label="Upload" value={uploadStatus} testId="upload-status" state={taskCompletion.upload ? "done" : "idle"} />
           <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
             <button type="button" data-testid="download-pdf-btn" onClick={() => handleDownload("pdf")} className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Download PDF</button>
             <button type="button" data-testid="download-csv-btn" onClick={() => handleDownload("csv")} className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Download CSV</button>
             <button type="button" data-testid="download-xml-btn" onClick={() => handleDownload("xml")} className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Download XML</button>
             <button type="button" data-testid="download-txt-btn" onClick={() => handleDownload("txt")} className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Download TXT</button>
           </div>
-          <StatusLine label="Download" value={downloadStatus} testId="download-status" state={downloadStatus !== initialStatus.download ? "done" : "idle"} />
+          <StatusLine label="Download" value={downloadStatus} testId="download-status" state={taskCompletion.download ? "done" : "idle"} />
         </motion.article>
       </motion.section>
 
@@ -386,7 +446,10 @@ export default function SandboxAdvancedPage() {
                 data-testid="practice-date-picker"
                 type="date"
                 value={practiceDate}
-                onChange={(event) => setPracticeDate(event.target.value)}
+                onChange={(event) => {
+                  setPracticeDate(event.target.value);
+                  if (event.target.value) markTaskComplete("practiceDate");
+                }}
                 className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm"
               />
             </label>
@@ -396,7 +459,10 @@ export default function SandboxAdvancedPage() {
                 data-testid="interview-date-picker"
                 type="date"
                 value={interviewDate}
-                onChange={(event) => setInterviewDate(event.target.value)}
+                onChange={(event) => {
+                  setInterviewDate(event.target.value);
+                  if (event.target.value) markTaskComplete("interviewDate");
+                }}
                 className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm"
               />
             </label>
@@ -430,7 +496,7 @@ export default function SandboxAdvancedPage() {
               <div data-testid="wait-selector-placeholder" className="rounded-lg border border-dashed border-[#CBD5E1] bg-white px-3 py-2 text-sm text-[#64748B]">Selector target hidden. Click reveal button.</div>
             )}
           </div>
-          <StatusLine label="Wait Ops" value={waitStatus} testId="waitops-status" state={waitStatus === initialStatus.wait ? "idle" : waitStatus.toLowerCase().includes("in progress") || waitStatus.toLowerCase().includes("scheduled") || waitStatus === "Triggering locator wait target..." || waitStatus === "Triggering selector wait target..." ? "loading" : "done"} />
+          <StatusLine label="Wait Ops" value={waitStatus} testId="waitops-status" state={taskCompletion.wait ? "done" : waitStatus === initialStatus.wait ? "idle" : waitStatus.toLowerCase().includes("in progress") || waitStatus.toLowerCase().includes("scheduled") || waitStatus === "Triggering locator wait target..." || waitStatus === "Triggering selector wait target..." ? "loading" : "done"} />
         </motion.article>
       </motion.section>
 
