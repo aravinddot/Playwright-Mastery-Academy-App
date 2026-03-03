@@ -44,6 +44,7 @@ const initialStatus = {
 };
 
 const totalSandboxAdvancedTasks = 12;
+const uploadExtensions = [".pdf", ".csv", ".xml", ".txt"];
 const sandboxAdvancedPath = "/practice/sandbox-advanced";
 const initialTaskState = {
   dynamic: false,
@@ -372,20 +373,22 @@ export default function SandboxAdvancedPage() {
                 </label>
               </div>
             </div>
-            <div className="relative rounded-lg border border-[#E2E8F0] bg-white p-3">
+            <div className="rounded-lg border border-[#E2E8F0] bg-white p-3">
               <p className="text-sm font-semibold text-[#334155]">Bootstrap Dropdown Practice</p>
-              <button type="button" data-testid="bootstrap-dropdown-trigger" aria-expanded={isBootstrapDropdownOpen} aria-controls="bootstrap-dropdown-menu" onClick={() => setIsBootstrapDropdownOpen((prev) => !prev)} className="mt-2 inline-flex w-full items-center justify-between rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-sm font-semibold text-[#334155]">
-                <span>{bootstrapDropdownValue || "Select batch slot"}</span>
-                <span className="text-xs text-[#64748B]">Menu</span>
-              </button>
-              {isBootstrapDropdownOpen ? (
-                <div id="bootstrap-dropdown-menu" data-testid="bootstrap-dropdown-menu" className="absolute left-3 right-3 top-[calc(100%-2px)] z-20 rounded-md border border-[#CBD5E1] bg-white p-1 shadow-lg">
-                  <button type="button" data-testid="bootstrap-dropdown-item-weekday" onClick={() => { setBootstrapDropdownValue("Weekday Batch"); setIsBootstrapDropdownOpen(false); setDropdownStatus("Bootstrap dropdown selected: Weekday Batch."); markTaskComplete("dropdown"); }} className="block w-full rounded px-2 py-1.5 text-left text-sm text-[#334155] hover:bg-[#EFF6FF]">Weekday Batch</button>
-                  <button type="button" data-testid="bootstrap-dropdown-item-weekend" onClick={() => { setBootstrapDropdownValue("Weekend Batch"); setIsBootstrapDropdownOpen(false); setDropdownStatus("Bootstrap dropdown selected: Weekend Batch."); markTaskComplete("dropdown"); }} className="block w-full rounded px-2 py-1.5 text-left text-sm text-[#334155] hover:bg-[#EFF6FF]">Weekend Batch</button>
-                  <button type="button" data-testid="bootstrap-dropdown-item-fasttrack" onClick={() => { setBootstrapDropdownValue("Fast Track Batch"); setIsBootstrapDropdownOpen(false); setDropdownStatus("Bootstrap dropdown selected: Fast Track Batch."); markTaskComplete("dropdown"); }} className="block w-full rounded px-2 py-1.5 text-left text-sm text-[#334155] hover:bg-[#EFF6FF]">Fast Track Batch</button>
-                </div>
-              ) : null}
-              <p data-testid="bootstrap-dropdown-value" className="mt-2 text-xs font-medium text-[#64748B]">{bootstrapDropdownValue ? `Selected: ${bootstrapDropdownValue}` : "No bootstrap option selected."}</p>
+              <div className="relative mt-2">
+                <button type="button" data-testid="bootstrap-dropdown-trigger" aria-expanded={isBootstrapDropdownOpen} aria-controls="bootstrap-dropdown-menu" onClick={() => setIsBootstrapDropdownOpen((prev) => !prev)} className="inline-flex w-full items-center justify-between rounded-md border border-[#CBD5E1] bg-white px-3 py-2 text-sm font-semibold text-[#334155]">
+                  <span>{bootstrapDropdownValue || "Select batch slot"}</span>
+                  <span className="text-xs text-[#64748B]">Menu</span>
+                </button>
+                {isBootstrapDropdownOpen ? (
+                  <div id="bootstrap-dropdown-menu" data-testid="bootstrap-dropdown-menu" className="absolute left-0 right-0 top-[calc(100%+6px)] z-30 rounded-md border border-[#CBD5E1] bg-white p-1 shadow-lg">
+                    <button type="button" data-testid="bootstrap-dropdown-item-weekday" onClick={() => { setBootstrapDropdownValue("Weekday Batch"); setIsBootstrapDropdownOpen(false); setDropdownStatus("Bootstrap dropdown selected: Weekday Batch."); markTaskComplete("dropdown"); }} className="block w-full rounded px-2 py-1.5 text-left text-sm text-[#334155] hover:bg-[#EFF6FF]">Weekday Batch</button>
+                    <button type="button" data-testid="bootstrap-dropdown-item-weekend" onClick={() => { setBootstrapDropdownValue("Weekend Batch"); setIsBootstrapDropdownOpen(false); setDropdownStatus("Bootstrap dropdown selected: Weekend Batch."); markTaskComplete("dropdown"); }} className="block w-full rounded px-2 py-1.5 text-left text-sm text-[#334155] hover:bg-[#EFF6FF]">Weekend Batch</button>
+                    <button type="button" data-testid="bootstrap-dropdown-item-fasttrack" onClick={() => { setBootstrapDropdownValue("Fast Track Batch"); setIsBootstrapDropdownOpen(false); setDropdownStatus("Bootstrap dropdown selected: Fast Track Batch."); markTaskComplete("dropdown"); }} className="block w-full rounded px-2 py-1.5 text-left text-sm text-[#334155] hover:bg-[#EFF6FF]">Fast Track Batch</button>
+                  </div>
+                ) : null}
+              </div>
+              <p data-testid="bootstrap-dropdown-value" className="mt-3 text-xs font-medium text-[#64748B]">{bootstrapDropdownValue ? `Selected: ${bootstrapDropdownValue}` : "No bootstrap option selected."}</p>
             </div>
           </div>
           <StatusLine label="Dynamic Dropdown" value={dynamicStatus} testId="dynamic-dropdown-status" state={taskCompletion.dynamic ? "done" : "idle"} />
@@ -414,9 +417,14 @@ export default function SandboxAdvancedPage() {
             <div data-testid="drop-target" onDragOver={(event) => event.preventDefault()} onDrop={onDrop} className="rounded-lg border border-dashed border-[#CBD5E1] bg-white px-3 py-4 text-center text-sm font-semibold text-[#334155]">Drop target</div>
           </div>
           <StatusLine label="Drop" value={dropStatus} testId="drop-status" state={taskCompletion.drop ? "done" : "idle"} />
-          <label className="mt-4 block text-sm font-semibold text-[#334155]">Upload file
-            <input data-testid="file-upload-input" type="file" accept=".pdf,.csv,.xml,.txt,text/plain,application/pdf,text/csv,application/xml,text/xml" onChange={(event) => { const file = event.target.files?.[0]; if (!file) { setUploadStatus(initialStatus.upload); return; } const valid = [".pdf", ".csv", ".xml", ".txt"].some((ext) => file.name.toLowerCase().endsWith(ext)); if (!valid) { setUploadStatus("Invalid file type. Upload PDF, CSV, XML, or TXT only."); event.target.value = ""; return; } setUploadStatus(`${file.name} uploaded successfully.`); markTaskComplete("upload"); }} className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm" />
-          </label>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="block text-sm font-semibold text-[#334155]">Upload file
+              <input data-testid="file-upload-input" type="file" accept=".pdf,.csv,.xml,.txt,text/plain,application/pdf,text/csv,application/xml,text/xml" onChange={(event) => { const file = event.target.files?.[0]; if (!file) { setUploadStatus(initialStatus.upload); return; } const valid = uploadExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)); if (!valid) { setUploadStatus("Invalid file type. Upload PDF, CSV, XML, or TXT only."); event.target.value = ""; return; } setUploadStatus(`${file.name} uploaded successfully.`); markTaskComplete("upload"); }} className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm" />
+            </label>
+            <label className="block text-sm font-semibold text-[#334155]">Upload multiple files
+              <input data-testid="multi-file-upload-input" type="file" multiple accept=".pdf,.csv,.xml,.txt,text/plain,application/pdf,text/csv,application/xml,text/xml" onChange={(event) => { const files = Array.from(event.target.files || []); if (!files.length) { setUploadStatus(initialStatus.upload); return; } const invalidFile = files.find((file) => !uploadExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))); if (invalidFile) { setUploadStatus("Invalid file type in multiple upload. Upload PDF, CSV, XML, or TXT only."); event.target.value = ""; return; } const visibleNames = files.slice(0, 3).map((file) => file.name).join(", "); const remainingCount = files.length - 3; const remainingLabel = remainingCount > 0 ? ` +${remainingCount} more` : ""; setUploadStatus(`${files.length} files uploaded: ${visibleNames}${remainingLabel}.`); markTaskComplete("upload"); }} className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm" />
+            </label>
+          </div>
           <StatusLine label="Upload" value={uploadStatus} testId="upload-status" state={taskCompletion.upload ? "done" : "idle"} />
           <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
             <button type="button" data-testid="download-pdf-btn" onClick={() => handleDownload("pdf")} className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Download PDF</button>
@@ -463,6 +471,8 @@ export default function SandboxAdvancedPage() {
                   setInterviewDate(event.target.value);
                   if (event.target.value) markTaskComplete("interviewDate");
                 }}
+                onKeyDown={(event) => event.preventDefault()}
+                onPaste={(event) => event.preventDefault()}
                 className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm"
               />
             </label>
