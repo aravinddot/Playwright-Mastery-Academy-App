@@ -42,6 +42,11 @@ const initialStatus = {
   download: "No download triggered.",
   wait: "Wait command checks not started."
 };
+const initialMouseStatus = {
+  downUp: "Mouse down/up not triggered.",
+  rightClick: "Right click not triggered.",
+  wheel: "Mouse wheel not triggered."
+};
 
 const totalSandboxAdvancedTasks = 12;
 const uploadExtensions = [".pdf", ".csv", ".xml", ".txt"];
@@ -99,15 +104,18 @@ export default function SandboxAdvancedPage() {
   const [downloadStatus, setDownloadStatus] = useState(initialStatus.download);
 
   const [waitStatus, setWaitStatus] = useState(initialStatus.wait);
+  const [loadStateDrillStatus, setLoadStateDrillStatus] = useState("Load state drill not started.");
   const [locatorWaitVisible, setLocatorWaitVisible] = useState(false);
   const [selectorWaitVisible, setSelectorWaitVisible] = useState(false);
+  const [mouseDownUpStatus, setMouseDownUpStatus] = useState(initialMouseStatus.downUp);
+  const [mouseRightClickStatus, setMouseRightClickStatus] = useState(initialMouseStatus.rightClick);
+  const [mouseWheelStatus, setMouseWheelStatus] = useState(initialMouseStatus.wheel);
   const [taskCompletion, setTaskCompletion] = useState(initialTaskState);
   const [isTaskStateReady, setIsTaskStateReady] = useState(false);
 
   const locatorWaitTimerRef = useRef(null);
   const selectorWaitTimerRef = useRef(null);
   const waitNavigationTimerRef = useRef(null);
-  const waitUrlTimerRef = useRef(null);
   const waitReloadTimerRef = useRef(null);
 
   useEffect(() => {
@@ -129,10 +137,62 @@ export default function SandboxAdvancedPage() {
       customElements.define("pw-shadow-lab", PwShadowLab);
     }
     return () => {
-      [locatorWaitTimerRef, selectorWaitTimerRef, waitNavigationTimerRef, waitUrlTimerRef, waitReloadTimerRef].forEach((timer) => {
+      [locatorWaitTimerRef, selectorWaitTimerRef, waitNavigationTimerRef, waitReloadTimerRef].forEach((timer) => {
         if (timer.current) clearTimeout(timer.current);
       });
     };
+  }, []);
+
+  useEffect(() => {
+    const stage =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("loadstate")
+        : null;
+    if (!stage) return undefined;
+
+    if (stage === "domcontentloaded") {
+      let mounted = true;
+      setLoadStateDrillStatus("DOMContentLoaded checkpoint in progress...");
+      setWaitStatus("Load state drill landed: domcontentloaded. Completing in ~4.2s...");
+      const timer = setTimeout(() => {
+        if (!mounted) return;
+        setLoadStateDrillStatus("DOMContentLoaded checkpoint reached.");
+        setWaitStatus("Load state drill completed: domcontentloaded.");
+      }, 4200);
+      return () => {
+        mounted = false;
+        clearTimeout(timer);
+      };
+    }
+
+    if (stage === "load") {
+      setLoadStateDrillStatus("Load checkpoint reached.");
+      setWaitStatus("Load state drill completed: load.");
+      return undefined;
+    }
+
+    if (stage === "networkidle") {
+      let mounted = true;
+      setLoadStateDrillStatus("Networkidle checkpoint in progress...");
+      setWaitStatus("Load state drill landed: networkidle. Waiting for network idle.");
+      fetch(`/api/practice/waits-status?mode=networkidle&delay=5500&ts=${Date.now()}`, { cache: "no-store" })
+        .then((response) => response.json())
+        .then((data) => {
+          if (!mounted) return;
+          setLoadStateDrillStatus(`Networkidle checkpoint reached after ${toSeconds(data.delayMs || 0)}s.`);
+          setWaitStatus("Load state drill completed: networkidle.");
+        })
+        .catch(() => {
+          if (!mounted) return;
+          setLoadStateDrillStatus("Networkidle checkpoint reached.");
+          setWaitStatus("Load state drill completed: networkidle.");
+        });
+      return () => {
+        mounted = false;
+      };
+    }
+
+    return undefined;
   }, []);
 
   useEffect(() => {
@@ -265,25 +325,30 @@ export default function SandboxAdvancedPage() {
     }
   };
 
-  const triggerWaitUrl = () => {
-    if (waitUrlTimerRef.current) clearTimeout(waitUrlTimerRef.current);
-    const delay = getDelay();
-    setWaitStatus(`URL update scheduled (${toSeconds(delay)}s)...`);
-    markTaskComplete("wait");
-    waitUrlTimerRef.current = setTimeout(() => {
-      window.history.replaceState({}, "", "/practice/sandbox-advanced?wait=ready#sandbox-advanced");
-      setWaitStatus(`URL changed to ?wait=ready after ${toSeconds(delay)}s.`);
-      waitUrlTimerRef.current = null;
-    }, delay);
-  };
-
-  const triggerWaitLoadState = () => {
+  const triggerWaitLoadState = (stage) => {
     if (waitReloadTimerRef.current) clearTimeout(waitReloadTimerRef.current);
-    const delay = getDelay();
-    setWaitStatus(`Reload scheduled (${toSeconds(delay)}s)...`);
+    const delay = stage === "domcontentloaded" ? 2000 : stage === "load" ? 0 : stage === "networkidle" ? 0 : getDelay();
+    const label =
+      stage === "domcontentloaded"
+        ? "domcontentloaded"
+        : stage === "load"
+          ? "load"
+          : "networkidle";
+    if (stage === "load") {
+      setLoadStateDrillStatus("Load reload started. Completing in ~6.0s...");
+      setWaitStatus("Reload for load started. Please wait...");
+    } else {
+      setLoadStateDrillStatus(`${label} reload scheduled (${toSeconds(delay)}s)...`);
+      setWaitStatus(`Reload for ${label} scheduled (${toSeconds(delay)}s)...`);
+    }
     markTaskComplete("wait");
     waitReloadTimerRef.current = setTimeout(() => {
-      window.location.assign("/practice/sandbox-advanced?loadstate=ready#sandbox-advanced");
+      const target = `/practice/sandbox-advanced?loadstate=${stage}&ts=${Date.now()}#sandbox-advanced`;
+      if (stage === "load") {
+        window.location.assign(`/api/practice/waits-load-redirect?delay=6000&to=${encodeURIComponent(target)}`);
+      } else {
+        window.location.assign(target);
+      }
       waitReloadTimerRef.current = null;
     }, delay);
   };
@@ -405,7 +470,25 @@ export default function SandboxAdvancedPage() {
             <button type="button" data-testid="prompt-btn" onClick={() => { const value = window.prompt("Enter learner batch name", "Batch-01"); setDialogStatus(value ? `Prompt value: ${value}` : "Prompt cancelled."); markTaskComplete("promptDialog"); }} className="w-full rounded-lg border border-[#93C5FD] bg-white px-3 py-2 text-left text-sm font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Trigger Prompt</button>
           </div>
           <StatusLine label="Dialog" value={dialogStatus} testId="dialog-status" state={taskCompletion.alertDialog && taskCompletion.confirmDialog && taskCompletion.promptDialog && taskCompletion.popupTab ? "done" : "idle"} />
-          <a href="/practice/popup" target="_blank" rel="noopener noreferrer" data-testid="popup-link" onClick={() => { setDialogStatus("Popup tab opened."); markTaskComplete("popupTab"); }} className="mt-3 inline-flex text-sm font-semibold text-[#2563EB] underline underline-offset-4">Open popup tab</a>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <a href="/practice/popup" target="_blank" rel="noopener noreferrer" data-testid="popup-link" onClick={() => { setDialogStatus("Popup tab opened."); markTaskComplete("popupTab"); }} className="inline-flex text-sm font-semibold text-[#2563EB] underline underline-offset-4">Open popup tab</a>
+            <a
+              href="/practice/popup?source=right-click"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="popup-right-click-link"
+              onClick={(event) => {
+                event.preventDefault();
+                setDialogStatus("Direct click blocked. Use right click -> Open link in new tab.");
+              }}
+              onAuxClick={(event) => {
+                event.preventDefault();
+              }}
+              className="inline-flex text-sm font-semibold text-[#1D4ED8] underline underline-offset-4"
+            >
+              Open popup tab (right click only)
+            </a>
+          </div>
         </motion.article>
       </motion.section>
 
@@ -481,33 +564,77 @@ export default function SandboxAdvancedPage() {
       </motion.section>
 
       <motion.section {...revealProps} className={sectionClass}>
-        <motion.article {...withDelay(0.14)} className={cardClass}>
-          <h3 className="text-lg font-bold text-[#0F172A]">Wait Commands</h3>
-          <p className="mt-1 text-sm text-[#64748B]">Practice: <code>waitForNavigation</code>, <code>waitForResponse</code>, <code>waitForURL</code>, <code>waitForLoadState</code>, <code>locator.waitFor</code>, and <code>waitForSelector</code>.</p>
-          <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
-            <a href="/practice/popup?source=waitfornavigation" data-testid="wait-navigation-link" onClick={delayedNavigation} className="block w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Navigation Link</a>
-            <button type="button" data-testid="wait-response-btn" onClick={triggerWaitResponse} className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Trigger API Response</button>
-            <button type="button" data-testid="wait-url-btn" onClick={triggerWaitUrl} className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Update URL</button>
-            <button type="button" data-testid="wait-loadstate-link" onClick={triggerWaitLoadState} className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Reload for LoadState</button>
-          </div>
-          <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
-            <button type="button" data-testid="wait-locator-btn" onClick={revealLocatorTarget} className="w-full rounded-md bg-[#0B2A4A] px-3 py-1.5 text-left text-xs font-semibold text-white sm:w-auto sm:text-center">Reveal Locator Target</button>
-            <button type="button" data-testid="wait-selector-btn" onClick={revealSelectorTarget} className="w-full rounded-md bg-[#0B2A4A] px-3 py-1.5 text-left text-xs font-semibold text-white sm:w-auto sm:text-center">Reveal Selector Target</button>
-          </div>
-          <div className="mt-3 space-y-2">
-            {locatorWaitVisible ? (
-              <div data-testid="wait-locator-target" className="rounded-lg border border-[#93C5FD] bg-[#EFF6FF] px-3 py-2 text-sm font-semibold text-[#1D4ED8]">Locator wait target is visible.</div>
-            ) : (
-              <div data-testid="wait-locator-placeholder" className="rounded-lg border border-dashed border-[#CBD5E1] bg-white px-3 py-2 text-sm text-[#64748B]">Locator target hidden. Click reveal button.</div>
-            )}
-            {selectorWaitVisible ? (
-              <div data-testid="wait-selector-target" className="rounded-lg border border-[#93C5FD] bg-[#EFF6FF] px-3 py-2 text-sm font-semibold text-[#1D4ED8]">Selector wait target is visible.</div>
-            ) : (
-              <div data-testid="wait-selector-placeholder" className="rounded-lg border border-dashed border-[#CBD5E1] bg-white px-3 py-2 text-sm text-[#64748B]">Selector target hidden. Click reveal button.</div>
-            )}
-          </div>
-          <StatusLine label="Wait Ops" value={waitStatus} testId="waitops-status" state={taskCompletion.wait ? "done" : waitStatus === initialStatus.wait ? "idle" : waitStatus.toLowerCase().includes("in progress") || waitStatus.toLowerCase().includes("scheduled") || waitStatus === "Triggering locator wait target..." || waitStatus === "Triggering selector wait target..." ? "loading" : "done"} />
-        </motion.article>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <motion.article {...withDelay(0.14)} className={cardClass}>
+            <h3 className="text-lg font-bold text-[#0F172A]">Wait Commands</h3>
+            <p className="mt-1 text-sm text-[#64748B]">Practice: <code>waitForNavigation</code>, <code>waitForResponse</code>, <code>waitForURL</code>, <code>waitForLoadState</code>, <code>locator.waitFor</code>, and <code>waitForSelector</code>.</p>
+            <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
+              <a href="/practice/popup?source=waitfornavigation" data-testid="wait-navigation-link" onClick={delayedNavigation} className="block w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Navigation Link</a>
+              <button type="button" data-testid="wait-response-btn" onClick={triggerWaitResponse} className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Trigger API Response</button>
+              <button type="button" data-testid="wait-domcontentloaded-btn" onClick={() => triggerWaitLoadState("domcontentloaded")} className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Reload DOMContentLoaded</button>
+              <button type="button" data-testid="wait-load-btn" onClick={() => triggerWaitLoadState("load")} className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Reload Load</button>
+              <button type="button" data-testid="wait-networkidle-btn" onClick={() => triggerWaitLoadState("networkidle")} className="w-full rounded-md border border-[#BFDBFE] bg-white px-3 py-1.5 text-left text-xs font-semibold text-[#1D4ED8] sm:w-auto sm:text-center">Reload NetworkIdle</button>
+            </div>
+            <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
+              <button type="button" data-testid="wait-locator-btn" onClick={revealLocatorTarget} className="w-full rounded-md bg-[#0B2A4A] px-3 py-1.5 text-left text-xs font-semibold text-white sm:w-auto sm:text-center">Reveal Locator Target</button>
+              <button type="button" data-testid="wait-selector-btn" onClick={revealSelectorTarget} className="w-full rounded-md bg-[#0B2A4A] px-3 py-1.5 text-left text-xs font-semibold text-white sm:w-auto sm:text-center">Reveal Selector Target</button>
+            </div>
+            <div data-testid="wait-loadstate-status" className="mt-3 rounded-lg border border-[#DBEAFE] bg-[#F8FBFF] px-3 py-2 text-sm font-medium text-[#1D4ED8]">{loadStateDrillStatus}</div>
+            <div className="mt-3 space-y-2">
+              {locatorWaitVisible ? (
+                <div data-testid="wait-locator-target" className="rounded-lg border border-[#93C5FD] bg-[#EFF6FF] px-3 py-2 text-sm font-semibold text-[#1D4ED8]">Locator wait target is visible.</div>
+              ) : (
+                <div data-testid="wait-locator-placeholder" className="rounded-lg border border-dashed border-[#CBD5E1] bg-white px-3 py-2 text-sm text-[#64748B]">Locator target hidden. Click reveal button.</div>
+              )}
+              {selectorWaitVisible ? (
+                <div data-testid="wait-selector-target" className="rounded-lg border border-[#93C5FD] bg-[#EFF6FF] px-3 py-2 text-sm font-semibold text-[#1D4ED8]">Selector wait target is visible.</div>
+              ) : (
+                <div data-testid="wait-selector-placeholder" className="rounded-lg border border-dashed border-[#CBD5E1] bg-white px-3 py-2 text-sm text-[#64748B]">Selector target hidden. Click reveal button.</div>
+              )}
+            </div>
+            <StatusLine label="Wait Ops" value={waitStatus} testId="waitops-status" state={taskCompletion.wait ? "done" : waitStatus === initialStatus.wait ? "idle" : waitStatus.toLowerCase().includes("in progress") || waitStatus.toLowerCase().includes("scheduled") || waitStatus === "Triggering locator wait target..." || waitStatus === "Triggering selector wait target..." ? "loading" : "done"} />
+          </motion.article>
+
+          <motion.article {...withDelay(0.18)} className={cardClass}>
+            <h3 className="text-lg font-bold text-[#0F172A]">Mouse Actions</h3>
+            <p className="mt-1 text-sm text-[#64748B]">Practice: <code>mouse.down()</code>, <code>mouse.up()</code>, <code>mouse.click(..., right button)</code>, and <code>mouse.wheel()</code>.</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div
+                data-testid="mouse-downup-target"
+                onMouseDown={() => setMouseDownUpStatus("Mouse down detected.")}
+                onMouseUp={() => setMouseDownUpStatus("Mouse down + up detected.")}
+                className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-4 text-center text-sm font-semibold text-[#334155] sm:col-span-2"
+              >
+                Mouse Down / Up Target
+              </div>
+              <div
+                data-testid="mouse-rightclick-target"
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  setMouseRightClickStatus("Right click detected on target.");
+                }}
+                className="rounded-lg border border-[#E2E8F0] bg-white px-3 py-4 text-center text-sm font-semibold text-[#334155] sm:col-span-2"
+              >
+                Right Click Target
+              </div>
+              <div
+                data-testid="mouse-wheel-target"
+                onWheel={(event) => {
+                  event.preventDefault();
+                  setMouseWheelStatus(`Mouse wheel scrolled ${event.deltaY > 0 ? "down" : "up"}.`);
+                }}
+                className="h-32 overflow-auto rounded-lg border border-[#E2E8F0] bg-white px-3 py-2 text-sm text-[#334155] sm:col-span-2"
+              >
+                <p className="font-semibold text-[#0F172A]">Wheel Scroll Target</p>
+                <p className="mt-1 text-xs text-[#64748B]">Use mouse wheel inside this box to trigger wheel validation.</p>
+                <div className="h-40" />
+              </div>
+            </div>
+            <StatusLine label="Mouse Down/Up" value={mouseDownUpStatus} testId="mouse-downup-status" state={mouseDownUpStatus !== initialMouseStatus.downUp ? "done" : "idle"} />
+            <StatusLine label="Right Click" value={mouseRightClickStatus} testId="mouse-rightclick-status" state={mouseRightClickStatus !== initialMouseStatus.rightClick ? "done" : "idle"} />
+            <StatusLine label="Mouse Wheel" value={mouseWheelStatus} testId="mouse-wheel-status" state={mouseWheelStatus !== initialMouseStatus.wheel ? "done" : "idle"} />
+          </motion.article>
+        </div>
       </motion.section>
 
       <motion.section {...revealProps} className={sectionClass}>
