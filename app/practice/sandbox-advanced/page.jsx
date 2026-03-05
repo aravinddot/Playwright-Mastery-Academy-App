@@ -127,6 +127,8 @@ export default function SandboxAdvancedPage() {
 
   const waitNavigationTimerRef = useRef(null);
   const waitReloadTimerRef = useRef(null);
+  const practiceDateInputRef = useRef(null);
+  const interviewDateInputRef = useRef(null);
 
   useEffect(() => {
     if (!customElements.get("pw-shadow-lab")) {
@@ -362,6 +364,67 @@ export default function SandboxAdvancedPage() {
     mouseWheelStatus
   ]);
 
+  useEffect(() => {
+    const practiceEl = practiceDateInputRef.current;
+    const interviewEl = interviewDateInputRef.current;
+
+    const syncPracticeDate = () => {
+      if (!practiceEl) return;
+      const value = practiceEl.value || "";
+      setPracticeDate((prev) => (prev === value ? prev : value));
+      if (value) markTaskComplete("practiceDate");
+    };
+
+    const syncInterviewDate = () => {
+      if (!interviewEl) return;
+      const value = interviewEl.value || "";
+      setInterviewDate((prev) => (prev === value ? prev : value));
+      if (value) markTaskComplete("interviewDate");
+    };
+
+    if (practiceEl) {
+      practiceEl.addEventListener("input", syncPracticeDate);
+      practiceEl.addEventListener("change", syncPracticeDate);
+    }
+
+    if (interviewEl) {
+      interviewEl.addEventListener("input", syncInterviewDate);
+      interviewEl.addEventListener("change", syncInterviewDate);
+    }
+
+    return () => {
+      if (practiceEl) {
+        practiceEl.removeEventListener("input", syncPracticeDate);
+        practiceEl.removeEventListener("change", syncPracticeDate);
+      }
+      if (interviewEl) {
+        interviewEl.removeEventListener("input", syncInterviewDate);
+        interviewEl.removeEventListener("change", syncInterviewDate);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncFromInputValues = () => {
+      const practiceValue = practiceDateInputRef.current?.value || "";
+      const interviewValue = interviewDateInputRef.current?.value || "";
+
+      setPracticeDate((prev) => (prev === practiceValue ? prev : practiceValue));
+      setInterviewDate((prev) => (prev === interviewValue ? prev : interviewValue));
+
+      if (practiceValue) {
+        setTaskCompletion((prev) => (prev.practiceDate ? prev : { ...prev, practiceDate: true }));
+      }
+      if (interviewValue) {
+        setTaskCompletion((prev) => (prev.interviewDate ? prev : { ...prev, interviewDate: true }));
+      }
+    };
+
+    syncFromInputValues();
+    const intervalId = window.setInterval(syncFromInputValues, 250);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
   const markTaskComplete = (taskKey) => {
     setTaskCompletion((prev) => (prev[taskKey] ? prev : { ...prev, [taskKey]: true }));
   };
@@ -427,7 +490,7 @@ export default function SandboxAdvancedPage() {
       const response = await fetch("/api/practice/waits-status", { cache: "no-store" });
       const data = await response.json();
       setWaitStatus(`API responded with ${response.status}: ${data.status} after ${toSeconds(data.delayMs || 0)}s.`);
-      setWaitActionStatus((prev) => ({ ...prev, response: `Completed (${response.status})` }));
+      setWaitActionStatus((prev) => ({ ...prev, response: "Completed" }));
       markTaskComplete("waitResponse");
     } catch {
       setWaitStatus("API request failed.");
@@ -639,7 +702,12 @@ export default function SandboxAdvancedPage() {
               <input
                 data-testid="practice-date-picker"
                 type="date"
+                ref={practiceDateInputRef}
                 value={practiceDate}
+                onInput={(event) => {
+                  setPracticeDate(event.currentTarget.value);
+                  if (event.currentTarget.value) markTaskComplete("practiceDate");
+                }}
                 onChange={(event) => {
                   setPracticeDate(event.target.value);
                   if (event.target.value) markTaskComplete("practiceDate");
@@ -652,7 +720,12 @@ export default function SandboxAdvancedPage() {
               <input
                 data-testid="interview-date-picker"
                 type="date"
+                ref={interviewDateInputRef}
                 value={interviewDate}
+                onInput={(event) => {
+                  setInterviewDate(event.currentTarget.value);
+                  if (event.currentTarget.value) markTaskComplete("interviewDate");
+                }}
                 onChange={(event) => {
                   setInterviewDate(event.target.value);
                   if (event.target.value) markTaskComplete("interviewDate");
@@ -689,7 +762,11 @@ export default function SandboxAdvancedPage() {
             <div className="mt-4 rounded-lg border border-[#DBEAFE] bg-[#F8FBFF] p-3">
               <div className="mt-3 grid gap-2">
                 <div data-testid="wait-result-navigation" className="rounded-lg border border-[#DBEAFE] bg-[#F8FBFF] px-3 py-2 text-sm font-medium text-[#1D4ED8]">Navigation Link: {waitActionStatus.navigation}</div>
-                <div data-testid="wait-result-response" className="rounded-lg border border-[#DBEAFE] bg-[#F8FBFF] px-3 py-2 text-sm font-medium text-[#1D4ED8]">Trigger API Response: {waitActionStatus.response}</div>
+                <div data-testid="wait-result-response" className="rounded-lg border border-[#DBEAFE] bg-[#F8FBFF] px-3 py-2 text-sm font-medium text-[#1D4ED8]">
+                  {waitActionStatus.response === "Completed"
+                    ? "Trigger API Response Completed"
+                    : `Trigger API Response: ${waitActionStatus.response}`}
+                </div>
                 <div data-testid="wait-result-load" className="rounded-lg border border-[#DBEAFE] bg-[#F8FBFF] px-3 py-2 text-sm font-medium text-[#1D4ED8]">Test load State: {waitActionStatus.load}</div>
                 <div data-testid="wait-result-domcontentloaded" className="rounded-lg border border-[#DBEAFE] bg-[#F8FBFF] px-3 py-2 text-sm font-medium text-[#1D4ED8]">Test DOMContentLoaded State: {waitActionStatus.domcontentloaded}</div>
                 <div data-testid="wait-result-networkidle" className="rounded-lg border border-[#DBEAFE] bg-[#F8FBFF] px-3 py-2 text-sm font-medium text-[#1D4ED8]">Test Network Idle State: {waitActionStatus.networkidle}</div>
