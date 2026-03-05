@@ -498,7 +498,7 @@ export default function TestimonialsPage() {
   }, [testimonialPage, totalTestimonialPages]);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_12%_9%,rgba(37,99,235,0.12),transparent_34%),radial-gradient(circle_at_88%_20%,rgba(59,130,246,0.1),transparent_32%),radial-gradient(circle_at_50%_96%,rgba(191,219,254,0.32),transparent_36%),#F8FAFC] text-[#0F172A]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_8%_8%,rgba(37,99,235,0.16),transparent_34%),radial-gradient(circle_at_92%_14%,rgba(56,189,248,0.14),transparent_30%),radial-gradient(circle_at_50%_96%,rgba(191,219,254,0.34),transparent_38%),linear-gradient(180deg,#F8FAFC_0%,#EEF4FF_100%)] text-[#0F172A]">
       <header className="sticky top-0 z-50 border-b border-[#D6E3F8]/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(248,250,252,0.84)_100%)] shadow-[0_14px_34px_-24px_rgba(11,42,74,0.55)] backdrop-blur-xl">
         <nav
           className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8"
@@ -645,8 +645,10 @@ export default function TestimonialsPage() {
       <main className="mx-auto w-full max-w-6xl px-6 py-10 lg:px-8 lg:py-12">
         <motion.section
           {...revealProps}
-          className="mb-8 rounded-2xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F9FBFF_100%)] p-6 shadow-[0_22px_46px_-30px_rgba(11,42,74,0.45)] sm:p-8"
+          className="relative mb-8 overflow-hidden rounded-2xl border border-[#CFE0FF] bg-[radial-gradient(circle_at_8%_8%,rgba(37,99,235,0.12),transparent_36%),radial-gradient(circle_at_94%_88%,rgba(147,197,253,0.22),transparent_40%),linear-gradient(180deg,#FFFFFF_0%,#F5F9FF_100%)] p-6 shadow-[0_24px_50px_-30px_rgba(11,42,74,0.5)] sm:p-8"
         >
+          <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.22),transparent_72%)]" />
+          <div aria-hidden="true" className="pointer-events-none absolute -left-10 -bottom-10 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(191,219,254,0.38),transparent_72%)]" />
           <h2 className="text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
             Our Learners Are Placed At
           </h2>
@@ -673,8 +675,10 @@ export default function TestimonialsPage() {
 
         <motion.section
           {...revealProps}
-          className="rounded-2xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F9FBFF_100%)] p-6 shadow-[0_22px_46px_-30px_rgba(11,42,74,0.45)] sm:p-8"
+          className="relative overflow-hidden rounded-2xl border border-[#CFE0FF] bg-[radial-gradient(circle_at_10%_10%,rgba(59,130,246,0.1),transparent_34%),radial-gradient(circle_at_92%_92%,rgba(147,197,253,0.2),transparent_40%),linear-gradient(180deg,#FFFFFF_0%,#F6FAFF_100%)] p-6 shadow-[0_24px_50px_-30px_rgba(11,42,74,0.5)] sm:p-8"
         >
+          <div aria-hidden="true" className="pointer-events-none absolute -right-12 top-4 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(37,99,235,0.2),transparent_72%)]" />
+          <div aria-hidden="true" className="pointer-events-none absolute left-0 top-0 h-20 w-20 rounded-full bg-[radial-gradient(circle,rgba(186,230,253,0.5),transparent_72%)]" />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibleTestimonials.map((item, index) => (
               <TestimonialCard key={item.photo || item.name} item={item} delay={index * 0.08} />

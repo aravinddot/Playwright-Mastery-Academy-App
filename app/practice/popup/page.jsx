@@ -4,7 +4,7 @@ export const metadata = {
 
 export default function PracticePopupPage() {
   return (
-    <main className="min-h-screen bg-[#F8FAFC] px-6 py-8 text-[#0F172A]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_8%_8%,rgba(37,99,235,0.16),transparent_34%),radial-gradient(circle_at_92%_14%,rgba(56,189,248,0.14),transparent_30%),radial-gradient(circle_at_50%_96%,rgba(191,219,254,0.34),transparent_38%),linear-gradient(180deg,#F8FAFC_0%,#EEF4FF_100%)] px-6 py-8 text-[#0F172A]">
       <section className="mx-auto w-full max-w-2xl rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-[0_14px_34px_-24px_rgba(11,42,74,0.35)]">
         <h1 id="popup-title" className="text-3xl font-extrabold tracking-tight text-[#0B2A4A]">
           Popup Opened Successfully

@@ -6,10 +6,10 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 
 const statChips = [
-  "JS -> Playwright",
-  "TS -> Playwright",
-  "Framework from Scratch",
-  "CI/CD + BDD",
+  "JS Foundations",
+  "TS for Testing",
+  "Framework Build",
+  "CI/CD Ready",
   "Copilot + MCP + CODEX"
 ];
 
@@ -22,8 +22,7 @@ const curriculumSections = [
         id: "js-basics",
         title: "JavaScript Basics for Automation",
         level: "Beginner",
-        description:
-          "Build foundational JavaScript concepts required to start automation the right way.",
+        description: "Start with core automation concepts and JavaScript fundamentals.",
         topics: [
           "What is Automation?",
           "Manual vs Automation Testing",
@@ -42,8 +41,7 @@ const curriculumSections = [
         id: "js-intermediate",
         title: "JavaScript Intermediate for Automation",
         level: "Intermediate",
-        description:
-          "Learn reusable coding patterns and loop structures used in day-to-day test logic.",
+        description: "Build reusable logic with loops and functions.",
         topics: [
           "Traditional Loops - while, do while, for",
           "Specialized Iteration Loops - for in, for of",
@@ -56,14 +54,14 @@ const curriculumSections = [
         title: "JavaScript Advanced for Automation",
         level: "Advanced",
         description:
-          "Master modern JavaScript features that power scalable automation frameworks.",
+          "Master modern JavaScript patterns used in scalable automation frameworks.",
         topics: [
           "Array methods - push(), pop(), shift(), unshift(), includes(), indexOf(), slice(), splice(), map(), filter(), find(), forEach(), sort(), reduce()",
-          "Object Methods - Object.keys(), Object.values(), Object.entries(), Object.assign(), Object.freeze(), Object.seal(), Object.is()",
+          "Object Methods - object.keys(), object.values(), object.entries(), object.assign(), object.freeze(), object.seal(), object.is()",
           "ES6 Concepts - array destructuring, object destructuring, spread operators, rest parameters",
-          "Callback Function",
+          "Call Back Function",
           "Exception Handling",
-          "Promises, async & await",
+          "Promises, async & await"
         ]
       }
     ]
@@ -73,21 +71,20 @@ const curriculumSections = [
     title: "TypeScript for Automation",
     modules: [
       {
-        id: "ts-basics",
+        id: "ts-for-automation",
         title: "TypeScript for Automation",
         level: "Advanced",
-        description:
-          "Master modern TypeScript features that power scalable automation frameworks.",
+        description: "Learn TypeScript essentials to build safer and maintainable Playwright frameworks.",
         topics: [
-          "Introduction to TypeScript",
+          "Introduction to Typescript",
           "JS VS TS",
-          "String, Number, Boolean, Null, Undefined, Any, Unknown",
+          "Basic Types",
           "Tuples",
-          "Types, Intersection Types, Union Types",
+          "Types with union & Intersection types",
           "Interfaces",
-          "Enums"
+          "Enum"
         ]
-      },
+      }
     ]
   },
   {
@@ -99,14 +96,18 @@ const curriculumSections = [
         title: "Playwright Setup",
         level: "Beginner",
         description:
-          "Set up Playwright correctly and run your first production-style tests.",
+          "Set up Playwright and execute tests with modern runner features.",
         topics: [
           "What is Playwright",
           "Playwright Architecture",
           "Playwright Installation",
           "Playwright Test Runner",
           "Writing a simple test case",
-          "Annotations"
+          "Page fixture Basics",
+          "Async/Await",
+          "Run specific Tests and Multiple Tests",
+          "Generating HTML Test Reports",
+          "UI Mode Overview"
         ]
       },
       {
@@ -114,7 +115,7 @@ const curriculumSections = [
         title: "Playwright Locators",
         level: "Beginner",
         description:
-          "Use robust locator strategies to reduce flaky selectors in dynamic applications.",
+          "Build stable locator strategies for real-world applications.",
         topics: [
           "Playwright Locators - getByRole(), getByText(), getByLabel(), getByPlaceholder(), getByAltText(), getByTitle(), getByTestId()",
           "Chaining Locators, Filtering Locators, first(), last(), nth()"
@@ -123,17 +124,18 @@ const curriculumSections = [
       {
         id: "basic-element-handling",
         title: "Basics Element Handling",
-        level: "Intermediate",
+        level: "Beginner",
         description:
-          "Handle core page interactions and assertions required in real test flows.",
+          "Practice essential actions, data extraction, and assertions.",
         topics: [
           "Handling Basic elements -> Click Actions -> click(), dblclick(), hover()",
-          "Input Handling -> fill('text'), type('text'), clear(), press('Enter')",
-          "Checkbox & Radio Buttons -> element.check(), uncheck(), isChecked()",
-          "Dropdown -> selectOption()",
-          "Get Element Data -> textContent(), innerText(), inputValue(), getAttribute()",
-          "Basic Element State Checks - isVisible(), isHidden(), isEnabled()",
-          "Basic to Advanced Assertions - toBeVisible(), toContain(), toHaveText(), toBeHidden(), toBeEnabled(), toBeDisabled(), toBeChecked(), toHaveText(), toContainText(), toHaveValue(), toHaveAttribute(), toHaveCount(), toHaveURL()",
+          "Input Handling -> fill('text'), type('text'), clear()",
+          "Keyboard Handling -> keyboard.press()",
+          "Checkbox & Radio Buttons -> element.check(), uncheck()",
+          "Handling Static Dropdown -> selectOption()",
+          "Get Element Data -> textContent(), innerText(), inputValue(), getAttribute(), innerHtml()",
+          "Element State Checks - isVisible(), isHidden(), isEnabled(), isChecked(), isEditable()",
+          "Assertions - toBeVisible(), toContain(), toHaveText(), toBeHidden(), toBeEnabled(), toBeDisabled(), toBeChecked(), toHaveText(), toContainText(), toHaveValue(), toHaveAttribute(), toHaveCount(), toHaveURL()"
         ]
       },
       {
@@ -141,45 +143,101 @@ const curriculumSections = [
         title: "Advanced Element Handling",
         level: "Advanced",
         description:
-          "Tackle complex UI scenarios including tables, iframes, windows, and uploads.",
+          "Handle advanced UI workflows, browser contexts, waits, and diagnostics.",
         topics: [
-          "Element State & Stability -> waitFor()",
-          "Handling Multiple Elements -> count(), first(), last(), nth(), textContent(), allTextContents(), innerText(), allInnerText()",
-          "Keyboard Handling -> keyboard.press()",
-          "File Upload Handling -> setInputFiles()",
-          "File Download Handling -> waitForEvent()",
-          "Drag and Drop",
-          "Scroll Handling",
-          "Force Actions",
-          "Element Screenshot",
-          "Alerts",
-          "iFrames",
-          "Multiple tabs/windows",
-          "Shadow DOM",
-          "Handling tables & pagination",
-          "Advanced Assertions"
+          "Dynamic, Hidden, and Bootstrap Dropdown Strategies",
+          "Element Collections with first(), last(), nth(), and count()",
+          "Browser Dialog Handling: Alert, Confirm, Prompt",
+          "Browser Lifecycle with chromium.launch(), newContext(), and newPage()",
+          "Isolated Context Management",
+          "Multi-Tab and Window Handling (including blocked direct-click flows)",
+          "Drag-and-Drop Workflows",
+          "Single and Multiple File Upload Automation",
+          "File Download Handling and Validation",
+          "iFrame and Shadow DOM Automation",
+          "Date Picker Automation Patterns",
+          "Advanced Wait and Synchronization Commands",
+          "Mouse Interactions and Scroll Control",
+          "Force Actions for Non-Interactable Elements",
+          "Element Screenshot Capture",
+          "Advanced Table and Pagination Handling",
+          "Advanced Assertion Strategies: Retrying, Non-Retrying, Negative, Hard vs Soft",
+          "Rapid Test Recording with Codegen",
+          "Locator Discovery Using Codegen",
+          "Trace Viewer Analysis and Debugging"
         ]
       },
       {
         id: "test-hooks",
         title: "Test Hooks",
-        level: "Intermediate",
+        level: "Advanced",
         description:
-          "Organize setup and teardown logic to keep test suites clean and reusable.",
+          "Manage suite lifecycle with setup and teardown hooks.",
         topics: ["beforeEach, afterEach, beforeAll, afterAll"]
+      },
+      {
+        id: "configuration",
+        title: "Configuration",
+        level: "Advanced",
+        description: "Tune runtime and timeout controls for robust execution.",
+        topics: [
+          "Configure Timeouts - test timeout, expect timeout, actionTimeout, navigationTimeout, globalTimeout",
+          "Understand Playwright configuration file"
+        ]
+      },
+      {
+        id: "auth-skip-login",
+        title: "Authentication Handling",
+        level: "Advanced",
+        description: "Avoid repeated login and keep tests faster.",
+        topics: ["Handle Authentication and Skip login Multiple Times"]
+      },
+      {
+        id: "annotations-tagging",
+        title: "Annotations & Tagging Test",
+        level: "Advanced",
+        description: "Control test execution with annotations and tags.",
+        topics: [
+          "Annotations - only, skip, slow, fail, fixme",
+          "Tagging Tests"
+        ]
+      },
+      {
+        id: "parallel-execution",
+        title: "Parallel Test Execution",
+        level: "Advanced",
+        description: "Configure workers and run suites in parallel safely.",
+        topics: [
+          "Setting parallelism in config file",
+          "Limit workers"
+        ]
+      },
+      {
+        id: "multi-input-runs",
+        title: "Run Single Tests with Multiple Inputs",
+        level: "Advanced",
+        description: "Execute one test scenario against multiple datasets.",
+        topics: ["Run Single Tests with Multiple Inputs"]
+      },
+      {
+        id: "data-driven-testing",
+        title: "Data Driven Testing",
+        level: "Advanced",
+        description: "Drive scenarios from external test data sources.",
+        topics: ["Data Driven Testing (JSON, CSV, Excel)"]
       }
     ]
   },
   {
     id: "framework-engineering-pom-oops",
-    title: "Framework Engineering (POM + OOPS)",
+    title: "Framework Engineering",
     modules: [
       {
         id: "pom-oops",
-        title: "POM - Page Object Model Design Pattern & OOPS Concept",
+        title: "POM + OOPS Framework Design",
         level: "Advanced",
         description:
-          "Engineer a maintainable Playwright framework with OOPS, utilities, and config control.",
+          "Engineer a reusable framework with POM, OOPS, and utilities.",
         topics: [
           "Import & export modules",
           "OOPS -> class, Constructor, Encapsulation, Inheritance, Polymorphism, Abstraction, this Keyword, Readonly",
@@ -201,7 +259,7 @@ const curriculumSections = [
         title: "API Testing with Playwright",
         level: "Advanced",
         description:
-          "Validate APIs directly and combine API + UI checks for stronger end-to-end coverage.",
+          "Validate endpoints and combine API + UI validations.",
         topics: [
           "Introduction to API Testing",
           "GET, POST, PUT, DELETE requests",
@@ -220,15 +278,14 @@ const curriculumSections = [
     modules: [
       {
         id: "database-playwright",
-        title: "Data BaseTesting with Playwright",
-        level: "Intermediate",
+        title: "Database Testing with Playwright",
+        level: "Advanced",
         description:
-          "Connect to databases and verify stored data integrity against application behavior.",
+          "Query databases and validate end-to-end data integrity.",
         topics: [
           "Database connection (MySQL / Postgres)",
           "Basic Queries",
-          "Running SQL queries",
-          "Validating stored data"
+          "Running SQL queries"
         ]
       }
     ]
@@ -240,9 +297,9 @@ const curriculumSections = [
       {
         id: "reporting-execution-module",
         title: "Reporting & Execution",
-        level: "Intermediate",
+        level: "Advanced",
         description:
-          "Run tests at scale with retries, parallelization, and useful reporting outputs.",
+          "Execute at scale with retries, parallel runs, and reports.",
         topics: [
           "Playwright HTML Reports",
           "Allure Reporting",
@@ -261,9 +318,9 @@ const curriculumSections = [
       {
         id: "git-github",
         title: "Git & Github",
-        level: "Intermediate",
+        level: "Advanced",
         description:
-          "Version, collaborate, and run Playwright pipelines through GitHub Actions CI.",
+          "Version control, collaboration, and CI with GitHub Actions.",
         topics: [
           "Git installation & configuration",
           "Git basics",
@@ -286,7 +343,7 @@ const curriculumSections = [
         title: "Azure CI PIpeline",
         level: "Advanced",
         description:
-          "Build enterprise-grade Azure pipelines for multi-environment Playwright execution.",
+          "Run Playwright in Azure pipelines across environments.",
         topics: [
           "Introduction to CI/CD",
           "Azure Repos & Branching",
@@ -302,18 +359,19 @@ const curriculumSections = [
   },
   {
     id: "ai-tools-copilot-mcp",
-    title: "AI Tools (Copilot + MCP + CODEX)",
+    title: "AI Tooling",
     modules: [
       {
         id: "copilot-mcp",
-        title: "Github Co-Pilot, Playwright MCP & CODEX",
+        title: "Github Co-Pilot, CODEX & Playwright MCP Server",
         level: "Advanced",
         description:
-          "Accelerate test development using Copilot prompts, MCP integration, and CODEX-powered intelligent workflows.",
+          "Integrate Copilot + CODEX + MCP to accelerate test development and debugging.",
         topics: [
           "Introduction",
           "Setting Up Your Environment",
           "Using GitHub Copilot with Playwright",
+          "Using CODEX for automation workflows",
           "MCP Server Integration",
           "Copilot + CODEX Assisted Test Creation on MCP",
           "Debugging & Optimization"
@@ -327,10 +385,10 @@ const curriculumSections = [
     modules: [
       {
         id: "career-placement-module",
-        title: "Career & Placement",
+        title: "Career Readiness",
         level: "Advanced",
         description:
-          "Prepare for interviews, freelance execution, and profile optimization for faster hiring.",
+          "Get interview-ready and placement-focused with practical career support.",
         topics: [
           "All Interview QA for Playwright, JS, TS, POM, BDD, CICD & AI Tools",
           "Live Freelance Projects Exposure & Hands On",
@@ -372,11 +430,16 @@ function ModuleCard({ module, isOpen, onToggle, delay = 0 }) {
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-lg font-bold text-[#0F172A]">{module.title}</h3>
-        <span className="rounded-full border border-[#DBEAFE] bg-[#EFF6FF] px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
-          {module.level}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full border border-[#DBEAFE] bg-[#EFF6FF] px-2.5 py-1 text-xs font-semibold text-[#2563EB]">
+            {module.level}
+          </span>
+          <span className="rounded-full border border-[#E2E8F0] bg-white px-2.5 py-1 text-xs font-semibold text-[#475569]">
+            {module.topics.length} topics
+          </span>
+        </div>
       </div>
-      <p className="mt-2 text-sm leading-6 text-[#475569]">{module.description}</p>
+      <p className="mt-2 text-sm leading-5 text-[#475569]">{module.description}</p>
 
       <button
         id={buttonId}
@@ -386,7 +449,7 @@ function ModuleCard({ module, isOpen, onToggle, delay = 0 }) {
         onClick={onToggle}
         className="mt-4 inline-flex w-full items-center justify-between rounded-xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F1F5F9_100%)] px-3 py-2 text-left text-sm font-semibold text-[#0F172A] transition-colors duration-200 hover:border-[#2563EB] hover:text-[#2563EB]"
       >
-        <span>View Topics ({module.topics.length})</span>
+        <span>{isOpen ? "Hide Topics" : `Open Topics (${module.topics.length})`}</span>
         <svg
           viewBox="0 0 20 20"
           aria-hidden="true"
@@ -415,9 +478,15 @@ function ModuleCard({ module, isOpen, onToggle, delay = 0 }) {
             transition={{ duration: 0.25, ease: "easeOut" }}
             className="overflow-hidden"
           >
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-[#475569]">
+            <ul className="mt-3 space-y-2">
               {module.topics.map((topic) => (
-                <li key={topic}>{topic}</li>
+                <li
+                  key={topic}
+                  className="relative overflow-hidden flex items-start gap-2 rounded-lg border border-[#DCE7F8] bg-[linear-gradient(135deg,#FFFFFF_0%,#F6FAFF_100%)] px-3 py-2.5 text-sm leading-5 text-[#475569] shadow-[0_10px_22px_-20px_rgba(11,42,74,0.45)] transition-[transform,border-color,box-shadow] duration-200 md:hover:-translate-y-px md:hover:border-[#BFDBFE] md:hover:shadow-[0_16px_28px_-20px_rgba(37,99,235,0.35)]"
+                >
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[linear-gradient(180deg,#2563EB_0%,#1D4ED8_100%)]" />
+                  <span>{topic}</span>
+                </li>
               ))}
             </ul>
           </motion.div>
@@ -432,6 +501,19 @@ export default function CurriculumPage() {
     () => curriculumSections.flatMap((section) => section.modules.map((module) => module.id)),
     []
   );
+  const curriculumSnapshot = useMemo(() => {
+    const totalModules = curriculumSections.reduce((sum, section) => sum + section.modules.length, 0);
+    const totalTopics = curriculumSections.reduce(
+      (sum, section) =>
+        sum + section.modules.reduce((moduleSum, module) => moduleSum + module.topics.length, 0),
+      0
+    );
+    return {
+      totalModules,
+      totalTopics,
+      totalSections: curriculumSections.length
+    };
+  }, []);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openMap, setOpenMap] = useState(() =>
     allModuleIds.reduce((acc, id, index) => {
@@ -611,7 +693,7 @@ export default function CurriculumPage() {
         <div className="mx-auto w-full max-w-6xl px-6 py-10 lg:px-8 lg:py-12">
           <div className="rounded-2xl border border-white/20 bg-[linear-gradient(165deg,rgba(255,255,255,0.16)_0%,rgba(255,255,255,0.06)_100%)] p-6 shadow-[0_24px_50px_-24px_rgba(11,42,74,0.82)] backdrop-blur-md sm:p-8">
             <span className="inline-flex rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-[#DBEAFE]">
-              Program Roadmap
+              Curriculum Snapshot
             </span>
             <motion.h1 {...reveal} className="mt-3 text-4xl font-black tracking-tight text-white sm:text-5xl">
               Curriculum
@@ -619,11 +701,26 @@ export default function CurriculumPage() {
             <motion.p
               {...reveal}
               transition={{ ...reveal.transition, delay: 0.05 }}
-              className="mt-4 max-w-4xl text-base leading-7 text-white/90 sm:text-lg"
+              className="mt-4 max-w-5xl text-left text-base leading-7 text-white/90 sm:text-lg"
             >
-              A step-by-step roadmap from JavaScript & TypeScript fundamentals to Playwright frameworks, CI/CD,
-              BDD, and AI-assisted automation.
+              A focused roadmap from JavaScript and TypeScript fundamentals to Playwright framework
+              engineering, CI/CD pipelines, and AI-assisted automation with Copilot, MCP, and CODEX.
             </motion.p>
+            <motion.div
+              {...reveal}
+              transition={{ ...reveal.transition, delay: 0.08 }}
+              className="mt-5 grid gap-2.5 sm:grid-cols-3"
+            >
+              <span className="rounded-xl border border-white/25 bg-white/10 px-3 py-2 text-center text-xs font-semibold text-white sm:text-sm">
+                {curriculumSnapshot.totalSections} learning tracks
+              </span>
+              <span className="rounded-xl border border-white/25 bg-white/10 px-3 py-2 text-center text-xs font-semibold text-white sm:text-sm">
+                {curriculumSnapshot.totalModules} modules
+              </span>
+              <span className="rounded-xl border border-white/25 bg-white/10 px-3 py-2 text-center text-xs font-semibold text-white sm:text-sm">
+                {curriculumSnapshot.totalTopics}+ core topics
+              </span>
+            </motion.div>
 
             <motion.div
               {...reveal}
@@ -668,18 +765,23 @@ export default function CurriculumPage() {
 
         <div className="grid gap-7 lg:grid-cols-[280px_minmax(0,1fr)]">
           <aside className="hidden lg:block">
-            <div className="sticky top-28 rounded-2xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F9FBFF_100%)] p-4 shadow-[0_20px_42px_-28px_rgba(11,42,74,0.45)]">
-              <p className="mb-3 text-sm font-bold uppercase tracking-wide text-[#2563EB]">
-                Curriculum Sections
+            <div className="sticky top-32 relative overflow-hidden rounded-2xl border border-[#4B7CC9] bg-[radial-gradient(circle_at_12%_10%,rgba(96,165,250,0.26),transparent_38%),radial-gradient(circle_at_90%_88%,rgba(186,230,253,0.2),transparent_42%),linear-gradient(165deg,#0F2F57_0%,#1E3A8A_58%,#234BA3_100%)] p-4 shadow-[0_26px_50px_-28px_rgba(11,42,74,0.88)]">
+              <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-[radial-gradient(circle,rgba(125,211,252,0.35),transparent_72%)]" />
+              <div aria-hidden="true" className="pointer-events-none absolute -bottom-10 -left-8 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(191,219,254,0.28),transparent_72%)]" />
+              <p className="mb-3 text-sm font-bold uppercase tracking-wide text-[#DBEAFE]">
+                Curriculum Map
               </p>
               <ul className="space-y-2">
-                {curriculumSections.map((section) => (
+                {curriculumSections.map((section, index) => (
                   <li key={section.id}>
                     <a
                       href={`#${section.id}`}
-                      className="block rounded-lg px-3 py-2 text-sm font-semibold text-[#0F172A] transition-[background-color,color,transform] duration-200 hover:-translate-y-px hover:bg-[#EFF6FF] hover:text-[#2563EB]"
+                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-white/95 transition-[background-color,color,transform,box-shadow] duration-200 hover:-translate-y-px hover:bg-white/12 hover:text-white hover:shadow-[inset_0_0_0_1px_rgba(191,219,254,0.35)]"
                     >
-                      {section.title}
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/35 bg-white/12 text-[11px] font-bold text-[#DBEAFE]">
+                        {index + 1}
+                      </span>
+                      <span>{section.title}</span>
                     </a>
                   </li>
                 ))}
@@ -688,29 +790,43 @@ export default function CurriculumPage() {
           </aside>
 
           <div className="space-y-8">
-            {curriculumSections.map((section, sectionIndex) => (
-              <motion.section
-                id={section.id}
-                key={section.id}
-                className={`scroll-mt-28 ${sectionClass}`}
-                {...withDelay(sectionIndex * 0.03)}
-              >
-                <h2 className="mb-5 text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
-                  {section.title}
-                </h2>
-                <div className="space-y-4">
-                  {section.modules.map((module, moduleIndex) => (
-                    <ModuleCard
-                      key={module.id}
-                      module={module}
-                      isOpen={!!openMap[module.id]}
-                      onToggle={() => toggleModule(module.id)}
-                      delay={moduleIndex * 0.08}
-                    />
-                  ))}
-                </div>
-              </motion.section>
-            ))}
+            {curriculumSections.map((section, sectionIndex) => {
+              const sectionTopicCount = section.modules.reduce(
+                (sum, module) => sum + module.topics.length,
+                0
+              );
+              return (
+                <motion.section
+                  id={section.id}
+                  key={section.id}
+                  className={`scroll-mt-28 ${sectionClass}`}
+                  {...withDelay(sectionIndex * 0.03)}
+                >
+                  <h2 className="text-2xl font-extrabold tracking-tight text-[#0F172A] sm:text-3xl">
+                    {section.title}
+                  </h2>
+                  <p className="mb-5 mt-1 text-sm font-medium text-[#64748B]">
+                    {section.modules.length} module{section.modules.length > 1 ? "s" : ""} |{" "}
+                    {sectionTopicCount} topics
+                  </p>
+                  <div className="relative overflow-hidden rounded-2xl border border-[#4E78BB] bg-[radial-gradient(circle_at_8%_10%,rgba(59,130,246,0.34),transparent_36%),radial-gradient(circle_at_92%_88%,rgba(147,197,253,0.26),transparent_38%),linear-gradient(165deg,#0E2C53_0%,#173E75_55%,#1B4A8B_100%)] p-4 shadow-[0_24px_46px_-28px_rgba(11,42,74,0.92)] sm:p-5">
+                    <div aria-hidden="true" className="pointer-events-none absolute -right-8 top-4 h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(147,197,253,0.42),transparent_72%)]" />
+                    <div aria-hidden="true" className="pointer-events-none absolute -left-8 bottom-2 h-20 w-20 rounded-full bg-[radial-gradient(circle,rgba(191,219,254,0.32),transparent_72%)]" />
+                    <div className="relative space-y-4">
+                      {section.modules.map((module, moduleIndex) => (
+                        <ModuleCard
+                          key={module.id}
+                          module={module}
+                          isOpen={!!openMap[module.id]}
+                          onToggle={() => toggleModule(module.id)}
+                          delay={moduleIndex * 0.08}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </motion.section>
+              );
+            })}
           </div>
         </div>
       </main>
@@ -728,7 +844,7 @@ export default function CurriculumPage() {
               Build Skills That Hiring Teams Actually Need
             </h3>
             <p className="mt-4 max-w-3xl text-base leading-7 text-white/90 sm:text-lg">
-              Move from fundamentals to advanced implementation with frameworks, CI/CD, BDD, and
+              Move from fundamentals to advanced implementation with frameworks, CI/CD, and
               intelligent automation workflows.
             </p>
 
@@ -752,5 +868,3 @@ export default function CurriculumPage() {
     </div>
   );
 }
-
-

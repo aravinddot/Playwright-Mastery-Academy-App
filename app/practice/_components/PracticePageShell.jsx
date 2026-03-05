@@ -35,7 +35,7 @@ export default function PracticePageShell({ title, subtitle, chips = [], childre
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_12%_9%,rgba(37,99,235,0.12),transparent_34%),radial-gradient(circle_at_88%_20%,rgba(59,130,246,0.1),transparent_32%),radial-gradient(circle_at_50%_96%,rgba(191,219,254,0.32),transparent_36%),#F8FAFC] text-[#0F172A]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_8%_8%,rgba(37,99,235,0.16),transparent_34%),radial-gradient(circle_at_92%_14%,rgba(56,189,248,0.14),transparent_30%),radial-gradient(circle_at_50%_96%,rgba(191,219,254,0.34),transparent_38%),linear-gradient(180deg,#F8FAFC_0%,#EEF4FF_100%)] text-[#0F172A]">
       <header className="sticky top-0 z-50 border-b border-[#D6E3F8]/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.88)_0%,rgba(248,250,252,0.84)_100%)] shadow-[0_14px_34px_-24px_rgba(11,42,74,0.55)] backdrop-blur-xl">
         <nav
           className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8"

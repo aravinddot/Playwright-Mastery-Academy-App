@@ -1349,7 +1349,7 @@ export default function PracticePage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_12%_9%,rgba(37,99,235,0.08),transparent_36%),radial-gradient(circle_at_88%_26%,rgba(59,130,246,0.07),transparent_34%),#F8FAFC] text-[#0F172A]">
+    <div className="relative min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_8%_8%,rgba(37,99,235,0.16),transparent_34%),radial-gradient(circle_at_92%_14%,rgba(56,189,248,0.14),transparent_30%),radial-gradient(circle_at_50%_96%,rgba(191,219,254,0.34),transparent_38%),linear-gradient(180deg,#F8FAFC_0%,#EEF4FF_100%)] text-[#0F172A]">
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_8%_15%,rgba(59,130,246,0.12),transparent_28%),radial-gradient(circle_at_92%_12%,rgba(29,78,216,0.12),transparent_30%),radial-gradient(circle_at_50%_85%,rgba(147,197,253,0.18),transparent_34%)]"

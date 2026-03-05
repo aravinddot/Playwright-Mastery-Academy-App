@@ -204,7 +204,7 @@ export default function SandboxBasicPage() {
     <PracticePageShell
       title="Interactive Playwright Sandbox Basic"
       subtitle="Practice fundamental user interactions, form controls, dynamic waits, keyboard actions, and text extraction in a basic sandbox."
-      chips={["Clicks + Hover", "Inputs + Form", "Dynamic Waits + Keyboard", "Text Extraction"]}
+      chips={["Clicks + Hover", "Inputs + Form", "Static Waits + Keyboard", "Text Extraction"]}
     >
       <motion.section {...revealProps} className={sectionClass}>
         <div className="grid grid-cols-1 gap-4 [&>*]:min-w-0 lg:grid-cols-2">
@@ -434,7 +434,7 @@ export default function SandboxBasicPage() {
             {...withDelay(0.08)}
             className="rounded-xl border border-[#D9E6FF] bg-[linear-gradient(165deg,#FFFFFF_0%,#F8FAFC_100%)] p-5 shadow-[0_14px_28px_-24px_rgba(11,42,74,0.35)]"
           >
-            <h3 className="text-lg font-bold text-[#0F172A]">Dynamic Waits, Keyboard</h3>
+            <h3 className="text-lg font-bold text-[#0F172A]">Static Waits, Keyboard</h3>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <button
                 type="button"
