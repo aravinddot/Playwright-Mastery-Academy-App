@@ -78,12 +78,18 @@ function withDelay(delay) {
 const sectionClass =
   "relative overflow-hidden rounded-2xl border border-[#D7E4F8] bg-[linear-gradient(180deg,#FFFFFF_0%,#F9FBFF_100%)] p-6 shadow-[0_22px_48px_-30px_rgba(11,42,74,0.45)] sm:p-8";
 
-const totalTableLabTasks = 3;
+const totalTableLabTasks = 9;
 const tablePaginationPath = "/practice/table-pagination";
 const initialTaskState = {
-  filter: false,
-  sort: false,
-  pagination: false
+  selectRole: false,
+  selectStatus: false,
+  selectTrack: false,
+  selectExperience: false,
+  selectSort: false,
+  navigatePage: false,
+  searchInput: false,
+  pageSize: false,
+  sortDropdown: false
 };
 
 function buildRows(total = 3200) {
@@ -132,6 +138,7 @@ export default function TablePaginationPracticePage() {
   const [sortBy, setSortBy] = useState("id-asc");
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortDropdownInteracted, setSortDropdownInteracted] = useState(false);
   const [taskCompletion, setTaskCompletion] = useState(initialTaskState);
   const [isTaskStateReady, setIsTaskStateReady] = useState(false);
 
@@ -139,7 +146,22 @@ export default function TablePaginationPracticePage() {
     const storedTaskState = readPracticeTaskState();
     const persistedModuleState = storedTaskState[tablePaginationPath];
     if (persistedModuleState && typeof persistedModuleState === "object") {
-      setTaskCompletion({ ...initialTaskState, ...persistedModuleState });
+      const hydratedState = {
+        selectRole: Boolean(persistedModuleState.selectRole || persistedModuleState.filter),
+        selectStatus: Boolean(persistedModuleState.selectStatus || persistedModuleState.filter),
+        selectTrack: Boolean(persistedModuleState.selectTrack || persistedModuleState.filter),
+        selectExperience: Boolean(persistedModuleState.selectExperience || persistedModuleState.filter),
+        selectSort: Boolean(persistedModuleState.selectSort || persistedModuleState.sort),
+        navigatePage: Boolean(persistedModuleState.navigatePage || persistedModuleState.pagination),
+        searchInput: Boolean(persistedModuleState.searchInput),
+        pageSize: Boolean(persistedModuleState.pageSize),
+        sortDropdown: Boolean(
+          persistedModuleState.sortDropdown ||
+            persistedModuleState.selectSort ||
+            persistedModuleState.sort
+        )
+      };
+      setTaskCompletion({ ...initialTaskState, ...hydratedState });
     }
     setIsTaskStateReady(true);
   }, []);
@@ -197,26 +219,39 @@ export default function TablePaginationPracticePage() {
   useEffect(() => {
     if (!isTaskStateReady) return;
 
-    const filterTaskDone =
-      search.trim().length > 0 ||
-      roleFilter !== "All" ||
-      statusFilter !== "All" ||
-      trackFilter !== "All" ||
-      experienceFilter !== "All";
+    const roleTaskDone = roleFilter !== "All";
+    const statusTaskDone = statusFilter !== "All";
+    const trackTaskDone = trackFilter !== "All";
+    const experienceTaskDone = experienceFilter !== "All";
     const sortTaskDone = sortBy !== "id-asc";
-    const paginationTaskDone = currentPage > 1 || pageSize !== 25;
+    const paginationTaskDone = currentPage > 1;
+    const searchTaskDone = search.trim().length > 0;
+    const pageSizeTaskDone = pageSize !== 25;
+    const sortDropdownTaskDone = sortDropdownInteracted || sortBy !== "id-asc";
 
     setTaskCompletion((prev) => {
       const next = {
-        filter: prev.filter || filterTaskDone,
-        sort: prev.sort || sortTaskDone,
-        pagination: prev.pagination || paginationTaskDone
+        selectRole: prev.selectRole || roleTaskDone,
+        selectStatus: prev.selectStatus || statusTaskDone,
+        selectTrack: prev.selectTrack || trackTaskDone,
+        selectExperience: prev.selectExperience || experienceTaskDone,
+        selectSort: prev.selectSort || sortTaskDone,
+        navigatePage: prev.navigatePage || paginationTaskDone,
+        searchInput: prev.searchInput || searchTaskDone,
+        pageSize: prev.pageSize || pageSizeTaskDone,
+        sortDropdown: prev.sortDropdown || sortDropdownTaskDone
       };
 
       if (
-        next.filter === prev.filter &&
-        next.sort === prev.sort &&
-        next.pagination === prev.pagination
+        next.selectRole === prev.selectRole &&
+        next.selectStatus === prev.selectStatus &&
+        next.selectTrack === prev.selectTrack &&
+        next.selectExperience === prev.selectExperience &&
+        next.selectSort === prev.selectSort &&
+        next.navigatePage === prev.navigatePage &&
+        next.searchInput === prev.searchInput &&
+        next.pageSize === prev.pageSize &&
+        next.sortDropdown === prev.sortDropdown
       ) {
         return prev;
       }
@@ -232,7 +267,9 @@ export default function TablePaginationPracticePage() {
     experienceFilter,
     sortBy,
     currentPage,
-    pageSize
+    search,
+    pageSize,
+    sortDropdownInteracted
   ]);
 
   useEffect(() => {
@@ -529,7 +566,12 @@ export default function TablePaginationPracticePage() {
               <select
                 data-testid="filter-sort"
                 value={sortBy}
-                onChange={(event) => setSortBy(event.target.value)}
+                onFocus={() => setSortDropdownInteracted(true)}
+                onClick={() => setSortDropdownInteracted(true)}
+                onChange={(event) => {
+                  setSortDropdownInteracted(true);
+                  setSortBy(event.target.value);
+                }}
                 className="mt-1.5 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 py-2 text-sm"
               >
                 <option value="id-asc">ID Asc</option>

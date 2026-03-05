@@ -768,9 +768,9 @@ const practiceModulePaths = practiceModuleCards.map((module) => module.href);
 const moduleTaskPlan = {
   "/practice/locator-arena": 4,
   "/practice/sandbox-basic": 9,
-  "/practice/sandbox-advanced": 12,
+  "/practice/sandbox-advanced": 18,
   "/practice/network-mocking": 4,
-  "/practice/table-pagination": 3
+  "/practice/table-pagination": 9
 };
 
 const revealProps = {
